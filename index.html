@@ -2,49 +2,291 @@
 <html>
 
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>pode não man</title>
+  <title>PC Desktop</title>
 
   <style>
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(90deg, #0f172a, #1e293b);
+      padding: 15px 25px;
+      color: #e5e7eb;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    nav h1 {
+      color: #38bdf8;
+    }
+
+    /* ===== MENU ===== */
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 25px;
+    }
+
+    nav a {
+      color: #e5e7eb;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      color: #38bdf8;
+    }
+
+    /* ===== PERFIL ===== */
+    .perfil {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #e5e7eb;
+    }
+
+    /* ===== MENU PERFIL ===== */
+    .menu-perfil {
+      position: absolute;
+      top: 75px;
+      right: 25px;
+      background: #0f172a;
+      padding: 12px;
+      display: none;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .menu-perfil button {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      background: #1e293b;
+      color: #e5e7eb;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .menu-perfil button:hover {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    /* ===== CONTEÚDO ===== */
+    main {
+      padding: 30px;
+      background: #020617;
+      min-height: calc(100vh - 80px);
+      color: #e5e7eb;
+    }
+
+    h2 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    p {
+      max-width: 700px;
+      line-height: 1.6;
+    }
+
+    /* ===== IMAGEM ===== */
+    img {
+      max-width: 320px;
+      margin-top: 20px;
+      border-radius: 10px;
+      border: 2px solid #1e293b;
+    }
+
+    /* ===== SEÇÕES ===== */
+    .hidden {
+      display: none;
+    }
+
+    /* ===== MODAIS ===== */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 6, 23, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: #0f172a;
+      padding: 25px;
+      width: 320px;
+      border-radius: 10px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content h3 {
+      color: #38bdf8;
+      margin-bottom: 15px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1e293b;
+      border-radius: 5px;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+
+    .modal-content button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background: #38bdf8;
+      color: #020617;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background: #0ea5e9;
+    }
+
+    footer {
+      display: flex;
+      align-content: center;
+      justify-content: center;
+      background-color: #1e293b;
+      color: white;
+    }
   </style>
 
-  
-</head>
-<body>
-  <!-- bsrrs de tsrefa-->
-  <nav>
-    <ul>
-      <li> home </li> 
-      <li> sobre </li>
-      <li> contato  </l1>
-    </ul>
-  </nav>
-  <!-- cabeçalho -->
-  <div class="Titulo">
-  <h1> Titulo principal</h1>
-  <h2> subtitulo</h2>
-</div>
-<div class="texto">
-  <p> mine java tem melhores mods e bedrock tem sistema melhores</p>
-  <img src ="https://th.bing.com/th/id/OIP.axkDcQbvARom36aWiJ5oowHaFA?w=242&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Batalha naval no Rio de Toddy salgado" width="500" height="500">
-</div>
-<div class="formulario">
-<label for="nome"> nome: </label>
-<input type="text"  id="nome" name="nome"/>
-<label for="email" Email:>
-</label>
-<input type="email"/>
-<button> enviar </button>
-</div>
-<footer>
-  <p> meu site todos os direitos reservados 2025</p>
-</footer>
-
   <script>
-    
+    function toggleMenu() {
+      const menu = document.getElementById("menuPerfil");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function abrirLogin() {
+      fecharModais();
+      document.getElementById("login").style.display = "flex";
+    }
+
+    function abrirCadastro() {
+      fecharModais();
+      document.getElementById("cadastro").style.display = "flex";
+    }
+
+    function fecharModais() {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("cadastro").style.display = "none";
+    }
+
+    function mostrarInicio() {
+      document.getElementById("inicio").classList.remove("hidden");
+      document.getElementById("sobre").classList.add("hidden");
+    }
+
+    function mostrarSobre() {
+      document.getElementById("sobre").classList.remove("hidden");
+      document.getElementById("inicio").classList.add("hidden");
+    }
+
   </script>
+</head>
+
+<body>
+  <link rel="stylesheet" href="style.css">
+
+
+
+  <header>
+    <nav>
+      <h1>PC Desktop</h1>
+
+      <ul>
+        <li><a href="#" onclick="mostrarInicio()">Início</a></li>
+        <li><a href="#" onclick="mostrarSobre()">Sobre</a></li>
+      </ul>
+
+      <div class="perfil" onclick="toggleMenu()"></div>
+
+      <div class="menu-perfil" id="menuPerfil">
+        <button onclick="abrirLogin()">Login</button>
+        <button onclick="abrirCadastro()">Cadastrar</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section id="inicio">
+      <h2>Informações sobre PC Desktop</h2>
+      <p>
+        Um PC desktop é um computador projetado para uso fixo,
+        oferecendo mais desempenho, possibilidade de upgrades
+        e melhor refrigeração.
+      </p>
+
+      <img src="gabinete.jpeg" alt="pc completo">
+    </section>
+
+    <section id="sobre" class="hidden">
+      <h2>Sobre o site</h2>
+      <p>
+        Este site foi criado para ajudar pessoas a entenderem
+        melhor o que é um PC Desktop, seus componentes e sua importância.
+      </p>
+    </section>
+  </main>
+
+  <!-- LOGIN -->
+  <div class="modal" id="login">
+    <div class="modal-content">
+      <h3>Login</h3>
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Senha">
+      <button onclick="fecharModais()">Entrar</button>
+    </div>
+  </div>
+
+  <!-- CADASTRO -->
+  <div class="modal" id="cadastro">
+    <div class="modal-content">
+      <h3>Cadastrar</h3>
+      <input type="text" placeholder="Nome">
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Senha">
+      <button onclick="fecharModais()">Cadastrar</button>
+    </div>
+  </div>
+
+
+  <footer>todos os direitos reservados aleatorio22-2025</footer>
 </body>
+
 </html>
