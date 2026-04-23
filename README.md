@@ -1,0 +1,2618 @@
+[AquaSense_supabase.html](https://github.com/user-attachments/files/27026192/AquaSense_supabase.html)
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaSense — Monitoramento Inteligente de Água (Supabase Edition)</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f7ff;--bg2:#e4f0fb;--surface:#fff;--surface2:#f7fbff;
+  --border:#cde4f5;--border2:#a8d0ee;
+  --accent:#0077cc;--accent2:#005fa3;--accent-light:#e0f0ff;
+  --teal:#00a896;--teal-light:#d0f5f0;
+  --green:#22c55e;--green-light:#dcfce7;
+  --amber:#f59e0b;--amber-light:#fef3c7;
+  --red:#ef4444;--red-light:#fee2e2;
+  --text:#0f2035;--text2:#3a5a7a;--text3:#6b8fa8;
+  --mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;
+  --r:14px;--r2:20px;
+  --shadow:0 2px 16px rgba(0,100,200,.08);--shadow2:0 8px 40px rgba(0,100,200,.13);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{
+  content:'';position:fixed;bottom:-60px;left:-5%;width:110%;height:200px;
+  background:linear-gradient(180deg,transparent,rgba(0,119,204,.06));
+  border-radius:50% 50% 0 0;animation:wave 8s ease-in-out infinite;
+  pointer-events:none;z-index:0;
+}
+@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+.wrapper{position:relative;z-index:1;display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-logo{padding:26px 22px 18px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-drop{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#0077cc,#00a896);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(0,119,204,.3)}
+.logo-text{font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.logo-text span{color:var(--accent)}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--mono);letter-spacing:.05em}
+.sidebar-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:12px 12px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:var(--text2);margin-bottom:2px;border:1px solid transparent}
+.nav-item:hover{background:var(--accent-light);color:var(--accent)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);border-color:rgba(0,119,204,.15);font-weight:600}
+.nav-icon{font-size:15px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 7px;border-radius:99px;font-family:var(--mono)}
+.sidebar-bottom{padding:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.ard-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px}
+.db-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f0fff8;border:1px solid #86efac;border-radius:10px;font-size:12px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.status-dot.green{background:var(--green)}
+.status-dot.red{background:var(--red)}
+.status-dot.amber{background:var(--amber)}
+.status-dot.live{background:var(--green);animation:pulse-live 1.5s infinite}
+@keyframes pulse-live{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.pill-info strong{display:block;color:var(--text);font-weight:600;font-size:12px}
+.pill-info span{color:var(--text3);font-family:var(--mono);font-size:10px}
+
+/* ── MAIN ─────────────────────────────────────── */
+.main{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.page-title{font-size:18px;font-weight:700}
+.page-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar-r{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);box-shadow:0 4px 14px rgba(0,119,204,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.btn-danger{background:transparent;border:1px solid #fca5a5;color:var(--red)}
+.btn-danger:hover{background:var(--red-light)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.live-chip{display:flex;align-items:center;gap:6px;background:var(--green-light);color:#15803d;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600}
+.live-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse-live 1.5s infinite}
+.content{flex:1;padding:26px 30px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+
+/* ── DB BANNER ───────────────────────────────── */
+.db-banner{
+  background:linear-gradient(135deg,#f0fff8,#e6ffed);
+  border:1.5px solid #86efac;border-radius:var(--r2);
+  padding:20px 24px;margin-bottom:22px;
+  display:flex;align-items:flex-start;gap:16px;
+}
+.db-banner-icon{font-size:28px;flex-shrink:0;margin-top:2px}
+.db-banner h3{font-size:15px;font-weight:700;color:#15803d;margin-bottom:6px}
+.db-banner p{font-size:13px;color:#166534;line-height:1.6;margin-bottom:10px}
+.db-banner code{background:rgba(0,0,0,.07);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:12px}
+.db-banner.disconnected{background:linear-gradient(135deg,#fff8f0,#fff3e0);border-color:#fcd9a0}
+.db-banner.disconnected h3{color:#92400e}
+.db-banner.disconnected p{color:#78350f}
+
+/* ── NOTIF BAR ───────────────────────────────── */
+#notif-bar{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.notif-item{display:flex;align-items:flex-start;gap:12px;padding:13px 17px;border-radius:12px;border-left:4px solid;box-shadow:var(--shadow);animation:slide-dn .35s ease}
+@keyframes slide-dn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.notif-item.success{border-color:var(--green);background:var(--green-light)}
+.notif-item.warning{border-color:var(--amber);background:var(--amber-light)}
+.notif-item.info{border-color:var(--accent);background:var(--accent-light)}
+.notif-item.danger{border-color:var(--red);background:var(--red-light)}
+.notif-icon{font-size:17px;margin-top:2px}
+.notif-body{flex:1}
+.notif-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.notif-msg{font-size:13px;color:var(--text2);line-height:1.5}
+.notif-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.notif-close{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:0 4px}
+.notif-close:hover{color:var(--text)}
+
+/* ── STAT CARDS ──────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;box-shadow:var(--shadow);transition:all .25s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+.stat-card.highlight{background:linear-gradient(135deg,var(--accent),var(--teal));border:none}
+.stat-card.highlight .stat-label,.stat-card.highlight .stat-sub{color:rgba(255,255,255,.75)}
+.stat-card.highlight .stat-val{color:#fff}
+.stat-ico{font-size:20px;margin-bottom:10px}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.stat-val{font-size:30px;font-weight:800;color:var(--text);line-height:1;margin-bottom:5px}
+.stat-val .unit{font-size:14px;font-weight:400;color:var(--text3);margin-left:2px}
+.stat-sub{font-size:12px;color:var(--text3)}
+.delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;margin-top:6px}
+.delta.down{background:var(--green-light);color:#15803d}
+.delta.up{background:var(--red-light);color:var(--red)}
+.delta.neutral{background:var(--amber-light);color:#92400e}
+
+/* ── LIVE SECTION ────────────────────────────── */
+.live-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:22px;margin-bottom:22px;box-shadow:var(--shadow);display:flex;align-items:center;gap:22px}
+.live-ring{width:76px;height:76px;border-radius:50%;flex-shrink:0;border:3px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center;background:var(--accent-light)}
+.live-ring::after{content:'';position:absolute;inset:4px;border-radius:50%;border:2.5px solid var(--accent);border-top-color:transparent;animation:spin 1.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.live-ring.idle::after{animation:none;border-color:var(--border)}
+.live-val{font-size:38px;font-weight:800;color:var(--accent);font-family:var(--mono);line-height:1}
+.live-unit{font-size:13px;color:var(--text3);margin-top:2px}
+.live-desc{flex:1}
+.live-desc h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.live-desc p{font-size:13px;color:var(--text2);line-height:1.6}
+.live-stats{display:flex;gap:20px;margin-top:12px}
+.live-stat strong{display:block;font-size:16px;font-weight:700;color:var(--text)}
+.live-stat span{font-size:11px;color:var(--text3)}
+
+/* ── CHARTS ──────────────────────────────────── */
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:22px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:22px;box-shadow:var(--shadow)}
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.chart-title{font-size:15px;font-weight:700}
+.chart-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--text3)}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:155px;padding:0 2px}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.bars{flex:1;width:100%;display:flex;align-items:flex-end;gap:2px}
+.bar{flex:1;border-radius:5px 5px 0 0;min-height:3px;transition:height .8s cubic-bezier(.34,1.56,.64,1);position:relative;cursor:pointer}
+.bar.cur{background:linear-gradient(180deg,#38bdf8,#0077cc)}
+.bar.prv{background:var(--bg2);border:1px solid var(--border)}
+.bar:hover::after{content:attr(data-v);position:absolute;bottom:calc(100%+5px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;white-space:nowrap;z-index:10;pointer-events:none}
+.bar-lbl{font-size:10px;color:var(--text3);font-weight:500}
+.donut-wrap{display:flex;align-items:center;justify-content:center;padding:8px 0}
+
+/* ── GOAL CARD ───────────────────────────────── */
+.goal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:22px;margin-bottom:22px;box-shadow:var(--shadow)}
+.goal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.goal-top h3{font-size:15px;font-weight:700}
+.goal-body{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.prog-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.prog-pct{font-size:28px;font-weight:800;color:var(--green)}
+.prog-target{font-size:13px;color:var(--text3)}
+.prog-track{background:var(--bg2);border-radius:99px;height:10px;overflow:hidden;margin-bottom:8px}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal),var(--green));transition:width 1s ease}
+.proj-text{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* ── FORM FIELDS ─────────────────────────────── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field select option{background:var(--surface)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-actions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+
+/* ── HISTORY TABLE ───────────────────────────── */
+.history-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow)}
+.history-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 18px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border)}
+td{padding:12px 18px;border-bottom:1px solid var(--bg2);font-size:13px;color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--accent-light)}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.chip.eco{background:var(--green-light);color:#15803d}
+.chip.over{background:var(--red-light);color:#991b1b}
+.chip.nd{background:var(--amber-light);color:#92400e}
+
+/* ── TERMINAL / CODE ─────────────────────────── */
+.terminal{background:#0d1117;border-radius:12px;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.9;max-height:160px;overflow-y:auto;margin-top:14px;border:1px solid rgba(255,255,255,.06)}
+.log-line{animation:fade-in .3s ease}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.log-ok{color:#4ade80}.log-err{color:#f87171}.log-info{color:#60a5fa}.log-warn{color:#fbbf24}.log-muted{color:#475569}
+.code-block{background:#0d1117;border-radius:12px;padding:18px;font-family:var(--mono);font-size:11.5px;line-height:2;color:#c9d1d9;overflow-x:auto;border:1px solid rgba(255,255,255,.06)}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.num{color:#79c0ff}.cm{color:#8b949e}.vr{color:#ffa657}
+
+/* ── NOTIF HISTORY ───────────────────────────── */
+.notif-hist-item{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--shadow);margin-bottom:10px}
+.nh-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}
+.nh-icon.success{background:var(--green-light)}.nh-icon.warning{background:var(--amber-light)}.nh-icon.info{background:var(--accent-light)}.nh-icon.danger{background:var(--red-light)}
+.nh-body{flex:1}
+.nh-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.nh-msg{font-size:13px;color:var(--text2);line-height:1.5}
+.nh-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+.nh-unread{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media(max-width:900px){
+  .wrapper{grid-template-columns:1fr}.sidebar{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .charts-row{grid-template-columns:1fr}
+  .goal-body{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+}
+
+/* ── EDITOR DE CÓDIGO ────────────────────────── */
+#editor-app, #editor-db {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.75;
+  tab-size: 2;
+  color: #c9d1d9;
+  background: #0d1117;
+  border: 1.5px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s;
+}
+#editor-app:focus, #editor-db:focus {
+  border-color: rgba(0,119,204,.5);
+}
+
+/* ── SERVER CONTROL BUTTON ───────────────────── */
+.server-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;cursor:pointer;transition:all .2s}
+.server-pill:hover{border-color:var(--accent);background:var(--accent-light)}
+.server-pill.online{background:#f0fff8;border-color:#86efac}
+.server-pill.offline{background:#fff5f5;border-color:#fca5a5}
+.server-pill.connecting{background:var(--amber-light);border-color:var(--amber);animation:server-pulse .8s infinite}
+@keyframes server-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.server-toggle{margin-left:auto;width:34px;height:18px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0}
+.server-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.server-toggle.on{background:var(--green)}
+.server-toggle.on::after{transform:translateX(16px)}
+.server-toggle.off{background:#cbd5e1}
+
+/* ── CLOUD PANEL MODAL ───────────────────────── */
+#cloud-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,20,50,.45);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+#cloud-modal.open{display:flex}
+.cloud-modal-box{background:var(--surface);border-radius:var(--r2);padding:30px;width:min(96vw,560px);box-shadow:0 20px 60px rgba(0,100,200,.18);border:1px solid var(--border);position:relative;max-height:90vh;overflow-y:auto}
+.cloud-modal-box h2{font-size:18px;font-weight:800;margin-bottom:4px}
+.cloud-modal-box .sub{font-size:13px;color:var(--text3);margin-bottom:24px}
+.cloud-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cloud-close:hover{background:var(--bg2);color:var(--text)}
+.cloud-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border-radius:10px;padding:4px}
+.cloud-tab{flex:1;padding:7px;text-align:center;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text3);transition:all .2s;border:none;background:none;font-family:var(--sans)}
+.cloud-tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.cloud-tab-content{display:none}
+.cloud-tab-content.active{display:block}
+.cloud-step{display:flex;gap:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.cloud-step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.cloud-step h4{font-size:13px;font-weight:700;margin-bottom:3px}
+.cloud-step p{font-size:12px;color:var(--text2);line-height:1.6}
+.cloud-step code{font-family:var(--mono);font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--accent2)}
+.provider-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.provider-card{border:1.5px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:center}
+.provider-card:hover,.provider-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.provider-card .p-icon{font-size:24px;margin-bottom:6px}
+.provider-card .p-name{font-size:13px;font-weight:700;color:var(--text)}
+.provider-card .p-sub{font-size:11px;color:var(--text3)}
+.url-test-row{display:flex;gap:8px;margin-top:6px}
+.url-test-row input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:12px;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s}
+.url-test-row input:focus{border-color:var(--accent)}
+#cloud-test-result{margin-top:10px;padding:10px 14px;border-radius:9px;font-size:12px;display:none}
+#cloud-test-result.ok{background:var(--green-light);color:#15803d;display:block;border:1px solid #86efac}
+#cloud-test-result.err{background:var(--red-light);color:#991b1b;display:block;border:1px solid #fca5a5}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═══════════════════════════════ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-drop">💧</div>
+      <div>
+        <div class="logo-text">Aqua<span>Sense</span></div>
+        <div class="logo-sub">v4.0 · Supabase Edition</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="goPage('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="goPage('historico',this)"><span class="nav-icon">📅</span>Histórico</div>
+    <div class="nav-item" onclick="goPage('metas',this)"><span class="nav-icon">🎯</span>Metas</div>
+    <div class="nav-section">Sistema</div>
+    <div class="nav-item" onclick="goPage('notificacoes',this)"><span class="nav-icon">🔔</span>Notificações<span class="nav-badge" id="notif-count">0</span></div>
+    <div class="nav-item" onclick="goPage('editor',this)"><span class="nav-icon">💻</span>Editor de Código</div>
+    <div class="nav-item" onclick="openCloudModal()"><span class="nav-icon">☁️</span>Servidor na Nuvem</div>
+    <div class="nav-item" onclick="openCloudModal();setTimeout(()=>setConnMode('supabase'),200)"><span class="nav-icon">⚡</span>Configurar Supabase</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="server-pill offline" id="server-pill" onclick="openCloudModal()">
+      <div class="status-dot red" id="srv-dot"></div>
+      <div class="pill-info" style="flex:1">
+        <strong id="srv-status-lbl">Servidor API</strong>
+        <span id="srv-status-sub">Desligado</span>
+      </div>
+      <button class="server-toggle off" id="srv-toggle" onclick="event.stopPropagation();toggleServer()" title="Ligar/desligar servidor"></button>
+    </div>
+    <div class="db-pill">
+      <div class="status-dot amber" id="db-dot"></div>
+      <div class="pill-info">
+        <strong id="db-status-lbl">Supabase</strong>
+        <span id="db-status-sub">Não conectado</span>
+      </div>
+    </div>
+    <div class="ard-pill">
+      <div class="status-dot red" id="ard-dot"></div>
+      <div class="pill-info">
+        <strong id="ard-status-lbl">Arduino</strong>
+        <span id="ard-status-sub">Desconectado</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════ MAIN ═══════ -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="page-sub" id="page-sub">Monitoramento em tempo real</div>
+    </div>
+    <div class="topbar-r">
+      <div class="live-chip" id="live-chip" style="display:none"><div class="dot"></div>AO VIVO</div>
+      <button class="btn btn-ghost" onclick="exportData()">⬇ Exportar</button>
+      <button class="btn btn-primary" onclick="openCloudModal();setTimeout(()=>setConnMode('supabase'),200)">⚡ Configurar Supabase</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="notif-bar"></div>
+
+    <!-- ─── DASHBOARD ─────────────────────────── -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- DB Status banner -->
+      <div class="db-banner disconnected" id="db-banner">
+        <div class="db-banner-icon">⚡</div>
+        <div>
+          <h3 id="db-banner-title">Supabase não configurado — usando dados locais</h3>
+          <p id="db-banner-msg">Configure a API Key do Supabase para persistir os dados do Arduino. A URL <strong>vhzznwnyevwtqhfkkpua.supabase.co</strong> já está pré-configurada.</p>
+          <button class="btn btn-ghost btn-sm" onclick="openCloudModal();setTimeout(()=>setConnMode('supabase'),200)">Configurar Supabase ⚡ →</button>
+        </div>
+      </div>
+
+      <!-- Live reading -->
+      <div class="live-section">
+        <div class="live-ring idle" id="live-ring"><div style="font-size:22px">💧</div></div>
+        <div>
+          <div class="live-val" id="live-val">0.000</div>
+          <div class="live-unit">L/min — vazão instantânea</div>
+        </div>
+        <div class="live-desc">
+          <h3>Sensor de Fluxo — YF-S201</h3>
+          <p>Leitura do Arduino via Supabase REST API.<br>Dados persistidos automaticamente no banco PostgreSQL.</p>
+          <div class="live-stats">
+            <div class="live-stat"><strong id="ls-sessao">0.0</strong><span>L sessão</span></div>
+            <div class="live-stat"><strong id="ls-custo">R$ 0,00</strong><span>custo hoje</span></div>
+            <div class="live-stat"><strong id="ls-uptime">00:00:00</strong><span>uptime</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card highlight">
+          <div class="stat-ico">💧</div>
+          <div class="stat-label">Consumo Hoje</div>
+          <div class="stat-val" id="sv-hoje">0<span class="unit">L</span></div>
+          <div class="stat-sub" id="sv-hoje-sub">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">📆</div>
+          <div class="stat-label">Consumo Semana</div>
+          <div class="stat-val" id="sv-semana">0<span class="unit">L</span></div>
+          <span class="delta neutral" id="d-semana">—</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">🗓</div>
+          <div class="stat-label">Consumo Mês</div>
+          <div class="stat-val" id="sv-mes">0<span class="unit">L</span></div>
+          <span class="delta neutral" id="d-mes">—</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico">💰</div>
+          <div class="stat-label">Economia Estimada</div>
+          <div class="stat-val" id="sv-eco" style="color:var(--green)">—<span class="unit">%</span></div>
+          <div class="stat-sub" id="sv-eco-sub">vs. conta anterior</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Consumo diário — últimos 7 dias</div><div class="chart-sub">Atual vs. semana anterior</div></div>
+            <div class="legend">
+              <div style="display:flex;align-items:center;gap:5px"><div class="legend-dot" style="background:linear-gradient(135deg,#38bdf8,#0077cc)"></div>Atual</div>
+              <div style="display:flex;align-items:center;gap:5px"><div class="legend-dot" style="background:var(--bg2);border:1px solid var(--border)"></div>Anterior</div>
+            </div>
+          </div>
+          <div class="bar-chart" id="chart-daily"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Economia mensal</div><div class="chart-sub">Percentual vs. meta</div></div></div>
+          <div class="donut-wrap" id="donut-wrap"></div>
+        </div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-top">
+          <h3>🎯 Meta do Mês</h3>
+          <button class="btn btn-ghost btn-sm" onclick="goPage('metas',document.querySelectorAll('.nav-item')[2])">Configurar →</button>
+        </div>
+        <div class="goal-body">
+          <div>
+            <div class="prog-header"><span class="prog-pct" id="goal-pct">0%</span><span class="prog-target" id="goal-target-lbl">Meta: — %</span></div>
+            <div class="prog-track"><div class="prog-fill" id="goal-fill" style="width:0%"></div></div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.6" id="goal-note">Configure sua meta para ver a projeção.</div>
+          </div>
+          <div>
+            <div class="stat-label" style="margin-bottom:8px">Projeção semanal</div>
+            <div class="proj-text" id="proj-text">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── HISTÓRICO ──────────────────────────── -->
+    <div class="page" id="page-historico">
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-header"><div class="chart-title">Consumo mensal — últimos 6 meses</div></div>
+        <div class="bar-chart" id="chart-monthly" style="height:175px"></div>
+      </div>
+      <div class="history-card">
+        <div class="history-header">
+          <h3 style="font-size:15px;font-weight:700">Registros do banco de dados</h3>
+          <div style="display:flex;gap:8px">
+            <span style="font-size:12px;color:var(--text3);padding:6px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)" id="db-source-label">Fonte: local</span>
+            <button class="btn btn-ghost btn-sm" onclick="clearHistory()">🗑 Limpar local</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Período</th><th>Consumo (L)</th><th>Custo estimado</th><th>Δ vs anterior</th><th>Status</th></tr></thead><tbody id="hist-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ─── METAS ──────────────────────────────── -->
+    <div class="page" id="page-metas">
+      <div class="goal-card" style="max-width:700px">
+        <div class="goal-top">
+          <button class="btn btn-ghost btn-sm" onclick="goPage('dashboard',document.querySelector('.nav-item'))">← Voltar</button>
+          <h3>🎯 Configurar Meta de Economia</h3>
+        </div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:18px">Informe os dados da conta de água anterior. O AquaSense calcula automaticamente a economia mensal, projeções semanais e alertas.</p>
+        <div class="two-col">
+          <div class="field"><label>Conta anterior (L/mês)</label><input type="number" id="f-consumo-ant" placeholder="ex: 8000" min="0"></div>
+          <div class="field"><label>Valor da conta (R$)</label><input type="number" id="f-valor-ant" placeholder="ex: 120.00" min="0" step="0.01"></div>
+          <div class="field"><label>Meta de economia (%)</label><input type="number" id="f-meta-pct" placeholder="ex: 15" min="1" max="90"></div>
+          <div class="field"><label>Custo por m³ (R$)</label><input type="number" id="f-custo-m3" placeholder="ex: 5.50" min="0" step="0.01"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveGoal()">💾 Salvar meta</button>
+          <button class="btn btn-ghost" onclick="loadGoalForm()">↺ Restaurar</button>
+        </div>
+        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)" id="meta-preview"></div>
+      </div>
+    </div>
+
+    <!-- ─── NOTIFICAÇÕES ───────────────────────── -->
+    <div class="page" id="page-notificacoes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:16px;font-weight:700">Central de Notificações</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Alertas automáticos semanais, de meta e do sistema</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="btn-enable-notif" onclick="enableBrowserNotifs()">🔔 Ativar notificações do sistema</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearNotifs()">✓ Marcar como lidas</button>
+        </div>
+      </div>
+      <div id="notif-history"></div>
+    </div>
+
+    <!-- ─── EDITOR DE CÓDIGO ───────────────────── -->
+    <div class="page" id="page-editor">
+      <!-- Inputs ocultos necessários pelo JS -->
+      <input id="f-ip" type="hidden" value="192.168.1.100">
+      <input id="f-port" type="hidden" value="80">
+      <input id="f-ep" type="hidden" value="/sensor">
+      <select id="f-interval" style="display:none"><option value="5000" selected>5s</option></select>
+      <input id="f-lpp" type="hidden" value="0.0023">
+      <select id="f-mode" style="display:none"><option value="supabase" selected>supabase</option><option value="mysql">mysql</option></select>
+      <strong id="s-ard-status" style="display:none"></strong>
+      <strong id="s-db-status" style="display:none"></strong>
+      <strong id="s-last" style="display:none"></strong>
+      <strong id="s-count" style="display:none">0</strong>
+      <strong id="s-total" style="display:none">0 L</strong>
+      <div id="log-terminal" style="display:none"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+        <!-- Editor do aplicativo -->
+        <div class="goal-card" style="margin:0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div>
+              <h3 style="font-size:15px;font-weight:700">💻 Código do aplicativo</h3>
+              <p style="font-size:11px;color:var(--text3);margin-top:2px">HTML/CSS/JS — edite e salve</p>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" onclick="editorCopiar('app')">📋 Copiar</button>
+              <button class="btn btn-primary btn-sm" onclick="editorSalvar()">💾 Baixar .html</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--text3)">
+            <span id="app-line-count">— linhas</span>
+            <span style="margin-left:auto;color:var(--green);font-weight:600" id="app-saved-msg"></span>
+          </div>
+          <textarea id="editor-app" spellcheck="false"
+            style="flex:1;min-height:520px;width:100%;background:#0d1117;color:#c9d1d9;
+              border:1px solid rgba(255,255,255,.08);border-radius:10px;
+              font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.75;
+              padding:14px;resize:vertical;outline:none;tab-size:2"
+            oninput="editorContarLinhas('app')"
+            onkeydown="editorTab(event)"></textarea>
+        </div>
+
+        <!-- Visualizador do banco de dados MySQL -->
+        <div class="goal-card" style="margin:0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div>
+              <h3 style="font-size:15px;font-weight:700">🗄️ Banco de dados SQL Server</h3>
+              <p style="font-size:11px;color:var(--text3);margin-top:2px">JSON ao vivo — visualize os dados persistidos</p>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" onclick="editorRecarregarDb()">↺ Recarregar</button>
+              <button class="btn btn-ghost btn-sm" onclick="editorCopiar('db')">📋 Copiar</button>
+              <button class="btn btn-primary btn-sm" onclick="openDbPanel()">🗄️ Painel SQL Server</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--text3)">
+            <span id="db-status-lbl-editor">Carregando…</span>
+            <span style="margin-left:auto;color:var(--green);font-weight:600" id="db-saved-msg"></span>
+          </div>
+          <textarea id="editor-db" spellcheck="false" readonly
+            style="flex:1;min-height:520px;width:100%;background:#0d1117;color:#c9d1d9;
+              border:1px solid rgba(255,255,255,.08);border-radius:10px;
+              font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.75;
+              padding:14px;resize:vertical;outline:none;tab-size:2"
+            oninput="editorContarLinhas('db')"
+            onkeydown="editorTab(event)"></textarea>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="goal-card" style="margin-bottom:0">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">🖥 Terminal</h3>
+        <div class="terminal" id="editor-terminal" style="max-height:140px">
+          <div class="log-muted"># Editor AquaSense v4 — SQL Server Edition</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /wrapper -->
+
+<!-- ═══════════════════ CLOUD SERVER MODAL ═══════════════════ -->
+<!-- ═══════════════════ CLOUD SERVER MODAL ═══════════════════ -->
+<div id="cloud-modal">
+  <div class="cloud-modal-box">
+    <button class="cloud-close" onclick="closeCloudModal()">×</button>
+    <h2>☁️ Servidor na Nuvem</h2>
+    <p class="sub">Configure a API para funcionar 24/7, sem depender da sua máquina</p>
+
+    <div class="cloud-tabs">
+      <button class="cloud-tab active" onclick="cloudTab(this,'connect')">🔌 Conectar</button>
+      <button class="cloud-tab" onclick="cloudTab(this,'deploy')">🚀 Deploy Grátis</button>
+      <button class="cloud-tab" onclick="cloudTab(this,'status')">📊 Status</button>
+    </div>
+
+    <!-- TAB: CONECTAR -->
+    <div class="cloud-tab-content active" id="ctab-connect">
+
+      <!-- Seletor de modo de conexão -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--bg2);border-radius:10px;padding:4px">
+        <button id="conn-mode-api" class="cloud-tab active" style="flex:1" onclick="setConnMode('api')">🖥 API REST (Node.js)</button>
+        <button id="conn-mode-supabase" class="cloud-tab" style="flex:1" onclick="setConnMode('supabase')">⚡ Supabase</button>
+      </div>
+
+      <!-- PAINEL: API REST padrão -->
+      <div id="conn-panel-api">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Cole a URL da sua API hospedada na nuvem (Railway, Render, etc.) ou use <code style="font-family:var(--mono);font-size:12px;background:var(--bg2);padding:2px 5px;border-radius:4px">localhost:3000</code> para desenvolvimento local.</p>
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">URL da API</label>
+          <div class="url-test-row">
+            <input type="url" id="cloud-url-input" placeholder="https://seu-app.railway.app/api">
+            <button class="btn btn-ghost btn-sm" onclick="testCloudUrl()">🔍 Testar</button>
+            <button class="btn btn-primary btn-sm" onclick="saveCloudUrl()">💾 Salvar</button>
+          </div>
+          <div id="cloud-test-result"></div>
+        </div>
+        <div style="margin-top:16px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">URLs recentes</div>
+          <div id="cloud-url-history" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </div>
+
+      <!-- PAINEL: Supabase -->
+      <div id="conn-panel-supabase" style="display:none">
+        <div style="background:linear-gradient(135deg,#f0fff8,#e6fff5);border:1.5px solid #34d399;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:22px">⚡</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:3px">Conexão direta com Supabase</div>
+            <div style="font-size:12px;color:#047857;line-height:1.6">Sem precisar de servidor Node.js! O AquaSense usa a API REST nativa do Supabase. Cole sua <strong>Project URL</strong> e a <strong>anon key</strong> (em Project Settings → API).</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Project URL</label>
+          <input type="url" id="sb-url-input" placeholder="https://xxxxxxxxxxxx.supabase.co"
+            style="width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s"
+            oninput="sbCheckReady()">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Anon Public Key</label>
+          <div style="position:relative">
+            <input type="password" id="sb-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              style="width:100%;padding:9px 38px 9px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:12px;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s"
+              oninput="sbCheckReady()">
+            <button onclick="sbToggleKeyVis()" title="Mostrar/ocultar chave"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3)" id="sb-eye-btn">👁</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-ghost btn-sm" onclick="testSupabase()" id="sb-test-btn" disabled>🔍 Testar</button>
+          <button class="btn btn-primary btn-sm" onclick="saveSupabase()" id="sb-save-btn" disabled>⚡ Conectar Supabase</button>
+          <button class="btn btn-danger btn-sm" onclick="disconnectSupabase()" id="sb-disconnect-btn" style="display:none">✕ Desconectar</button>
+        </div>
+        <div id="sb-test-result" style="font-size:12px;margin-bottom:10px;min-height:18px"></div>
+
+        <!-- Status atual -->
+        <div id="sb-status-box" style="display:none;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px">
+          <div style="font-weight:700;color:var(--text);margin-bottom:4px">⚡ Supabase conectado</div>
+          <div style="font-family:var(--mono);color:var(--accent);font-size:11px;word-break:break-all" id="sb-status-url"></div>
+        </div>
+
+        <!-- Dica RLS -->
+        <div style="margin-top:14px;padding:12px 14px;background:var(--amber-light);border:1px solid var(--amber);border-radius:10px;font-size:12px;color:#78350f;line-height:1.6">
+          <strong>⚠️ Importante:</strong> Ative o acesso anônimo nas tabelas. No Supabase, vá em <strong>Authentication → Policies</strong> e crie uma policy "Enable all" para anon em cada tabela — ou desative o RLS temporariamente em <strong>Table Editor → [tabela] → RLS disabled</strong>.
+        </div>
+      </div>
+
+    </div>
+
+      <div class="cloud-tab-content" id="ctab-deploy">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Escolha um provedor para hospedar gratuitamente a API AquaSense com SQL Server ou banco compatível.</div>
+      <div class="provider-grid">
+        <div class="provider-card selected" id="prov-azure" onclick="selectProvider('azure')">
+          <div class="p-icon">☁️</div>
+          <div class="p-name">Azure App Service</div>
+          <div class="p-sub">Free tier · SQL Server nativo<br>Recomendado</div>
+        </div>
+        <div class="provider-card" id="prov-railway" onclick="selectProvider('railway')">
+          <div class="p-icon">🚂</div>
+          <div class="p-name">Railway</div>
+          <div class="p-sub">Grátis · Node.js + mssql<br>Mais fácil</div>
+        </div>
+        <div class="provider-card" id="prov-render" onclick="selectProvider('render')">
+          <div class="p-icon">🎨</div>
+          <div class="p-name">Render</div>
+          <div class="p-sub">Grátis · Node.js + mssql<br>Muito popular</div>
+        </div>
+        <div class="provider-card" id="prov-fly" onclick="selectProvider('fly')">
+          <div class="p-icon">🪰</div>
+          <div class="p-name">Fly.io</div>
+          <div class="p-sub">Grátis · Node.js + mssql<br>Avançado</div>
+        </div>
+        <div class="provider-card" id="prov-supabase" onclick="selectProvider('supabase')">
+          <div class="p-icon">⚡</div>
+          <div class="p-name">Supabase</div>
+          <div class="p-sub">Grátis · PostgreSQL + API REST<br>Sem backend próprio</div>
+        </div>
+      </div>
+      <div id="deploy-steps"></div>
+
+      <!-- Botões de download dos arquivos do servidor -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">📦 Arquivos para download</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+            <span style="font-size:20px">🟨</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">aquasense-api.js</div>
+              <div style="font-size:11px;color:var(--text3)">Servidor Node.js com Express + driver mssql para SQL Server</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="downloadApiFile()">⬇ Baixar</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+            <span style="font-size:20px">🗄️</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">aquasense-schema.sql</div>
+              <div style="font-size:11px;color:var(--text3)">Script SQL para criar as tabelas no SQL Server / Azure SQL</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="downloadSchemaFile()">⬇ Baixar</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+            <span style="font-size:20px">📋</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">package.json</div>
+              <div style="font-size:11px;color:var(--text3)">Dependências Node.js: express, mssql, cors, dotenv</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="downloadPackageJson()">⬇ Baixar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: STATUS -->
+    <div class="cloud-tab-content" id="ctab-status">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px" id="cloud-status-grid">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Servidor</div>
+          <div style="font-size:20px;font-weight:800" id="cstat-server">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" id="cstat-server-sub">Verificando...</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Latência</div>
+          <div style="font-size:20px;font-weight:800" id="cstat-ping">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">ms</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Banco</div>
+          <div style="font-size:20px;font-weight:800" id="cstat-db">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" id="cstat-db-sub">—</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">URL atual</div>
+          <div style="font-size:10px;font-weight:600;word-break:break-all;color:var(--accent);font-family:var(--mono);margin-top:4px" id="cstat-url">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="width:100%" onclick="checkCloudStatus()">↺ Verificar agora</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ╔══════════════════════════════════════════════════════════╗
+// ║   CAMADA DE ABSTRAÇÃO DO BANCO DE DADOS — DB ADAPTER    ║
+// ║   Toda comunicação com SQL Server passa por este objeto.║
+// ║   Para trocar o banco: edite apenas aqui.               ║
+// ╚══════════════════════════════════════════════════════════╝
+// ============================================================
+const DB = (() => {
+
+  // ── CONFIGURAÇÃO DA API REST ────────────────────────────
+  // Aponta para o backend Node.js que usa o driver 'mssql'
+  // e se conecta ao SQL Server.
+  let _apiBase = localStorage.getItem('aquasense_api_base') || 'http://localhost:3000/api';
+  let _connected = false;
+  let _pollInterval = null;
+  let _onReadingCallback = null;
+
+  // ── MÉTODOS PÚBLICOS ────────────────────────────────────
+
+  async function connect(apiBase) {
+    if (apiBase) {
+      _apiBase = apiBase;
+      localStorage.setItem('aquasense_api_base', apiBase);
+    }
+    try {
+      const r = await fetch(_apiBase + '/ping', { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      _connected = true;
+      _setStatus(true, 'Conectado', data.database || _apiBase);
+      _log('SQL Server conectado ✓ — ' + (_apiBase), 'log-ok');
+      await syncAll();
+      startPolling();
+      return true;
+    } catch (e) {
+      _connected = false;
+      _setStatus(false, 'Erro de conexão', e.message);
+      _log('Falha ao conectar: ' + e.message, 'log-err');
+      return false;
+    }
+  }
+
+  function disconnect() {
+    _connected = false;
+    stopPolling();
+    _setStatus(false, 'Desconectado', 'Não configurado');
+    _log('SQL Server desconectado.', 'log-warn');
+  }
+
+  async function writeReading(lpm, dateKey, monthKey, dailyVal, monthlyVal) {
+    if (!_connected) return;
+    try {
+      await _post('/leituras', { lpm, data: dateKey, ts: Date.now() });
+      await _post('/daily', { data: dateKey, litros: dailyVal });
+      await _post('/monthly', { mes: monthKey, litros: monthlyVal });
+    } catch (e) { _log('Erro ao gravar leitura: ' + e.message, 'log-err'); }
+  }
+
+  async function writeGoal(goal) {
+    if (!_connected) return;
+    try { await _post('/goal', goal); _log('Meta salva no SQL Server ✓', 'log-ok'); }
+    catch (e) { _log('Erro ao salvar meta: ' + e.message, 'log-err'); }
+  }
+
+  async function writeNotif(notif) {
+    if (!_connected) return;
+    try { await _post('/notifications', notif); }
+    catch (e) { /* silencioso */ }
+  }
+
+  async function syncAll() {
+    if (!_connected) return {};
+    try {
+      const [daily, monthly, goal, notifs] = await Promise.all([
+        _get('/daily'), _get('/monthly'), _get('/goal'), _get('/notifications')
+      ]);
+      _log('Sincronizado do SQL Server ✓', 'log-ok');
+      return { daily, monthly, goal, notifs };
+    } catch (e) {
+      _log('Aviso sync: ' + e.message, 'log-warn');
+      return {};
+    }
+  }
+
+  async function getSnapshot() {
+    if (!_connected) return null;
+    try { return await _get('/snapshot'); }
+    catch (e) { return null; }
+  }
+
+  async function getLastReading() {
+    if (!_connected) return null;
+    try { return await _get('/leituras/last'); }
+    catch (e) { return null; }
+  }
+
+  function onReading(callback) { _onReadingCallback = callback; }
+
+  function startPolling(interval = 5000) {
+    stopPolling();
+    _pollInterval = setInterval(async () => {
+      if (!_onReadingCallback) return;
+      try {
+        let r = null;
+        if (SUPABASE && SUPABASE.isConnected() && window._sbAdapter) {
+          r = await window._sbAdapter.getLastReading();
+        } else if (_connected) {
+          r = await _get('/leituras/last');
+        }
+        if (r && r.lpm !== undefined) _onReadingCallback(r);
+      } catch (e) { /* silencioso em polling */ }
+    }, interval);
+  }
+
+  function stopPolling() {
+    if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+  }
+
+  function isConnected() { return _connected; }
+  function getApiBase()   { return _apiBase; }
+
+  // ── PRIVADOS ────────────────────────────────────────────
+
+  async function _get(path) {
+    const r = await fetch(_apiBase + path, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' GET ' + path);
+    return r.json();
+  }
+
+  async function _post(path, body) {
+    const r = await fetch(_apiBase + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' POST ' + path);
+    return r.json();
+  }
+
+  function _setStatus(connected, lbl, sub) {
+    const dot = document.getElementById('db-dot');
+    if (dot) dot.className = 'status-dot ' + (connected ? 'live' : sub === 'Não configurado' ? 'amber' : 'red');
+    const lblEl = document.getElementById('db-status-lbl');
+    if (lblEl) lblEl.textContent = 'SQL Server';
+    const subEl = document.getElementById('db-status-sub');
+    if (subEl) subEl.textContent = sub || lbl;
+    const srcLbl = document.getElementById('db-source-label');
+    if (srcLbl) srcLbl.textContent = 'Fonte: ' + (connected ? 'SQL Server 🗄️' : 'local 💾');
+    // Banner dashboard
+    const banner = document.getElementById('db-banner');
+    if (banner) {
+      if (connected) {
+        banner.className = 'db-banner';
+        banner.innerHTML = `<div class="db-banner-icon">✅</div><div><h3>SQL Server conectado!</h3><p>Dados sincronizados com o banco. Leituras do Arduino são persistidas automaticamente.</p></div>`;
+      } else {
+        banner.className = 'db-banner disconnected';
+        banner.innerHTML = `<div class="db-banner-icon">🗄️</div><div><h3 id="db-banner-title">SQL Server não conectado — usando dados locais</h3><p id="db-banner-msg">Abra o <strong>Painel SQL Server</strong> para configurar a conexão.</p><button class="btn btn-ghost btn-sm" onclick="openDbPanel()">Abrir Painel SQL Server →</button></div>`;
+      }
+    }
+  }
+
+  function _log(msg, cls = 'log-ok') {
+    const t = document.getElementById('fb-terminal') || document.getElementById('editor-terminal');
+    if (!t) return;
+    const l = document.createElement('div');
+    l.className = 'log-line ' + cls;
+    l.textContent = '[' + new Date().toLocaleTimeString('pt-BR') + '] ' + msg;
+    t.appendChild(l);
+    t.scrollTop = t.scrollHeight;
+  }
+
+  return { connect, disconnect, writeReading, writeGoal, writeNotif, syncAll, getSnapshot, getLastReading, onReading, startPolling, stopPolling, isConnected, getApiBase };
+})();
+
+// ============================================================
+// LOGS SIMPLIFICADOS
+// ============================================================
+const ALOG = {
+  _n:0,_t0:Date.now(),
+  _s:{
+    '🚀':'background:#1e40af;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '🗄️':'background:#059669;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '🤖':'background:#22c55e;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '📡':'background:#ec4899;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '📦':'background:#8b5cf6;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '❌':'background:#ef4444;color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold',
+    '⚠️':'background:#eab308;color:#000;padding:2px 6px;border-radius:3px;font-weight:bold',
+  },
+  log(icon,msg,data){
+    this._n++;const t=new Date().toLocaleTimeString('pt-BR');
+    const s=this._s[icon]||this._s['🚀'];
+    data!==undefined?console.log(`%c${icon}%c #${this._n} [${t}] ${msg}`,s,'',data):console.log(`%c${icon}%c #${this._n} [${t}] ${msg}`,s,'');
+  },
+  err(msg,e){this._n++;console.error(`❌ #${this._n} ${msg}`,e||'');},
+  warn(msg,d){this._n++;console.warn(`⚠️ #${this._n} ${msg}`,d||'');},
+};
+window.ALOG=ALOG;
+
+// ============================================================
+// LOCAL DB (fallback quando MySQL não configurado)
+// ============================================================
+const LS_KEY='aquasense_v4_sqlserver';
+function lsLoad(){try{return JSON.parse(localStorage.getItem(LS_KEY))||lsDefault();}catch{return lsDefault();}}
+function lsSave(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
+function lsDefault(){
+  return{
+    dailyAgg:{},monthlyAgg:{},
+    goal:{consumoAnt:8000,valorAnt:120,metaPct:15,custoM3:5.50},
+    notifications:[],
+    totalSession:0,totalAllTime:0,readCount:0
+  };
+}
+let local=lsLoad();
+
+function seedLocal(){
+  if(Object.keys(local.dailyAgg).length>4)return;
+  const now=new Date();
+  for(let i=13;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const k=fmtDate(d);
+    if(!local.dailyAgg[k])local.dailyAgg[k]=Math.round(160+Math.random()*130);
+    const mk=k.slice(0,7);
+    local.monthlyAgg[mk]=(local.monthlyAgg[mk]||0)+local.dailyAgg[k];
+  }
+  lsSave(local);
+}
+seedLocal();
+
+// ============================================================
+// STATE
+// ============================================================
+const S={
+  ard:{connected:false,pollingId:null,uptimeId:null,uptimeSec:0,mode:'demo',liveL:0,lastKey:null},
+  config:{ip:'192.168.1.100',port:80,ep:'/sensor',interval:5000,lpp:0.0023}
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const DAY_LBL=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function fmtDate(d){return d.toISOString().slice(0,10);}
+function today(){return fmtDate(new Date());}
+function thisMonth(){return today().slice(0,7);}
+function fmtMoney(v){return 'R$ '+v.toFixed(2).replace('.',',');}
+function getWeekKeys(offset=0){
+  const r=[];const now=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i-offset*7);r.push(fmtDate(d));}
+  return r;
+}
+function getPrevMonth(ym){
+  const[y,m]=ym.split('-').map(Number);
+  return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`;
+}
+function getLast6Months(){
+  const r=[];const now=new Date();
+  const ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    r.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,label:ML[d.getMonth()]});
+  }
+  return r;
+}
+
+// ============================================================
+// ABRIR PAINEL SQL SERVER (modal embutido)
+// ============================================================
+window.openDbPanel = function() {
+  document.getElementById('sqlserver-modal').classList.add('open');
+  sqlPanelInit();
+};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const PI={
+  dashboard:['Dashboard','Monitoramento em tempo real'],
+  historico:['Histórico','Registros do banco de dados'],
+  metas:['Metas de Economia','Configure suas metas mensais'],
+  notificacoes:['Notificações','Alertas automáticos e do sistema'],
+  editor:['Editor de Código','Código do aplicativo e banco de dados SQL Server'],
+};
+function goPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  const[t,s]=PI[name]||['AquaSense',''];
+  document.getElementById('page-title').textContent=t;
+  document.getElementById('page-sub').textContent=s;
+  if(name==='historico')renderHistorico();
+  if(name==='metas')loadGoalForm();
+  if(name==='notificacoes')renderNotifHistory();
+  if(name==='dashboard')refreshDashboard();
+  if(name==='editor')editorInit();
+}
+window.goPage=goPage;
+
+// ============================================================
+// SINCRONIZAÇÃO COM SQL SERVER (via DB adapter)
+// ============================================================
+async function syncFromSQLServer(){
+  const data = await DB.syncAll();
+  if(!data) return;
+  if(data.daily && typeof data.daily === 'object') Object.assign(local.dailyAgg, data.daily);
+  if(data.monthly && typeof data.monthly === 'object') Object.assign(local.monthlyAgg, data.monthly);
+  if(data.goal && typeof data.goal === 'object') local.goal = {...local.goal, ...data.goal};
+  if(data.notifs && Array.isArray(data.notifs)){
+    data.notifs.forEach(n=>{ if(!local.notifications.find(x=>x.id===n.id)) local.notifications.unshift(n); });
+  }
+  lsSave(local);
+  refreshDashboard();
+}
+
+// ============================================================
+// READING PROCESSING
+// ============================================================
+function processReading(lpm,source='local'){
+  const litersThisTick=lpm*(S.config.interval/60000);
+  local.totalSession+=litersThisTick;
+  local.totalAllTime+=litersThisTick;
+  local.readCount++;
+  const td=today(),tm=thisMonth();
+  local.dailyAgg[td]=(local.dailyAgg[td]||0)+litersThisTick;
+  local.monthlyAgg[tm]=(local.monthlyAgg[tm]||0)+litersThisTick;
+  lsSave(local);
+
+  // Persistir no MySQL via DB adapter
+  DB.writeReading(lpm, td, tm, local.dailyAgg[td], local.monthlyAgg[tm]);
+
+  document.getElementById('live-val').textContent=lpm.toFixed(3);
+  document.getElementById('ls-sessao').textContent=local.totalSession.toFixed(1);
+  const custoHoje=(local.dailyAgg[td]||0)/1000*local.goal.custoM3;
+  document.getElementById('ls-custo').textContent=fmtMoney(custoHoje);
+  document.getElementById('s-count').textContent=local.readCount;
+  document.getElementById('s-total').textContent=local.totalAllTime.toFixed(3)+' L';
+  document.getElementById('s-last').textContent=new Date().toLocaleTimeString('pt-BR');
+  document.getElementById('live-ring').classList.remove('idle');
+  refreshDashboard();
+  checkSmartNotifs();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function refreshDashboard(){
+  const td=today(),tm=thisMonth();
+  const hoje=local.dailyAgg[td]||0;
+  document.getElementById('sv-hoje').innerHTML=Math.round(hoje)+'<span class="unit">L</span>';
+  document.getElementById('sv-hoje-sub').textContent=fmtMoney(hoje/1000*local.goal.custoM3)+' estimado';
+
+  const wk=getWeekKeys(0),pw=getWeekKeys(1);
+  const sem=wk.reduce((a,d)=>a+(local.dailyAgg[d]||0),0);
+  const semAnt=pw.reduce((a,d)=>a+(local.dailyAgg[d]||0),0);
+  document.getElementById('sv-semana').innerHTML=Math.round(sem)+'<span class="unit">L</span>';
+  renderDelta('d-semana',sem,semAnt);
+
+  const mes=local.monthlyAgg[tm]||0;
+  const mesAnt=local.monthlyAgg[getPrevMonth(tm)]||local.goal.consumoAnt||0;
+  document.getElementById('sv-mes').innerHTML=Math.round(mes)+'<span class="unit">L</span>';
+  renderDelta('d-mes',mes,mesAnt);
+
+  const cAnt=local.goal.consumoAnt||8000;
+  const eco=cAnt>0&&mes>0?((cAnt-mes)/cAnt*100):0;
+  const ecoEl=document.getElementById('sv-eco');
+  ecoEl.innerHTML=eco.toFixed(1)+'<span class="unit">%</span>';
+  ecoEl.style.color=eco>=0?'var(--green)':'var(--red)';
+  document.getElementById('sv-eco-sub').textContent=eco>=0?'Economia vs. anterior':'Excesso vs. anterior';
+
+  renderDailyChart();
+  renderDonut(Math.min(100,Math.max(0,eco)));
+  renderGoalCard(eco);
+}
+
+function renderDelta(id,cur,prev){
+  const el=document.getElementById(id);
+  if(!prev||prev===0){el.textContent='—';el.className='delta neutral';return;}
+  const diff=prev-cur;const pct=((diff/prev)*100).toFixed(1);
+  if(diff>0){el.textContent=`▼ ${pct}% vs anterior`;el.className='delta down';}
+  else if(diff<0){el.textContent=`▲ ${Math.abs(pct)}% vs anterior`;el.className='delta up';}
+  else{el.textContent='= sem variação';el.className='delta neutral';}
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+function renderDailyChart(){
+  const wk=getWeekKeys(0),pw=getWeekKeys(1);
+  const maxV=Math.max(...wk.map(d=>local.dailyAgg[d]||0),...pw.map(d=>local.dailyAgg[d]||0),1);
+  document.getElementById('chart-daily').innerHTML=wk.map((d,i)=>{
+    const cur=local.dailyAgg[d]||0,prv=local.dailyAgg[pw[i]]||0;
+    const hc=Math.max(3,Math.round((cur/maxV)*145)),hp=Math.max(3,Math.round((prv/maxV)*145));
+    const lbl=DAY_LBL[new Date(d+'T12:00').getDay()];
+    return `<div class="bar-group"><div class="bars">
+      <div class="bar cur" style="height:${hc}px" data-v="${Math.round(cur)}L atual"></div>
+      <div class="bar prv" style="height:${hp}px" data-v="${Math.round(prv)}L anterior"></div>
+    </div><div class="bar-lbl">${lbl}</div></div>`;
+  }).join('');
+}
+
+function renderMonthlyChart(){
+  const months=getLast6Months();
+  const maxV=Math.max(...months.map(m=>local.monthlyAgg[m.key]||0),1);
+  document.getElementById('chart-monthly').innerHTML=months.map(m=>{
+    const v=local.monthlyAgg[m.key]||0;
+    const h=Math.max(3,Math.round((v/maxV)*165));
+    return `<div class="bar-group"><div class="bars">
+      <div class="bar cur" style="height:${h}px" data-v="${Math.round(v)}L"></div>
+    </div><div class="bar-lbl">${m.label}</div></div>`;
+  }).join('');
+}
+
+function renderDonut(pct){
+  const r=58,cx=80,cy=80,sw=18,circ=2*Math.PI*r;
+  const dash=(pct/100)*circ;
+  document.getElementById('donut-wrap').innerHTML=`
+    <svg width="160" height="160" viewBox="0 0 160 160" style="overflow:visible">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg2)" stroke-width="${sw}"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
+        stroke="${pct>=0?'#22c55e':'#ef4444'}" stroke-width="${sw}"
+        stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}"
+        stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+      <text x="${cx}" y="${cy-8}" text-anchor="middle" dominant-baseline="middle"
+        font-size="24" font-weight="800" fill="${pct>=0?'#22c55e':'#ef4444'}" font-family="Outfit,sans-serif">${pct.toFixed(0)}%</text>
+      <text x="${cx}" y="${cy+14}" text-anchor="middle" dominant-baseline="middle"
+        font-size="12" fill="var(--text3)" font-family="Outfit,sans-serif">economia</text>
+    </svg>`;
+}
+
+// ============================================================
+// GOAL
+// ============================================================
+function renderGoalCard(ecoAtual){
+  const meta=local.goal.metaPct||15,cAnt=local.goal.consumoAnt||8000;
+  const pct=Math.min(100,Math.max(0,(ecoAtual/meta)*100));
+  document.getElementById('goal-pct').textContent=ecoAtual.toFixed(1)+'%';
+  document.getElementById('goal-target-lbl').textContent=`Meta: ${meta}%`;
+  document.getElementById('goal-fill').style.width=pct.toFixed(0)+'%';
+  const semana=getWeekKeys(0).reduce((a,d)=>a+(local.dailyAgg[d]||0),0);
+  const ritmoMes=semana*4.3;
+  const ecoProj=cAnt>0?((cAnt-ritmoMes)/cAnt*100).toFixed(1):'?';
+  let note=ecoAtual>=meta
+    ?`🎯 <strong style="color:var(--green)">Meta atingida!</strong> Você economizou ${ecoAtual.toFixed(1)}% — parabéns!`
+    :`Faltam <strong style="color:var(--accent)">${(meta-ecoAtual).toFixed(1)}%</strong> para atingir a meta de <strong>${meta}%</strong>.`;
+  document.getElementById('goal-note').innerHTML=note;
+  document.getElementById('proj-text').innerHTML=
+    `Projeção: <strong style="color:var(--accent)">${ecoProj}%</strong> de economia este mês.<br>
+    Equivale a <strong style="color:var(--green)">${fmtMoney((cAnt-ritmoMes)/1000*local.goal.custoM3)}</strong> economizados.`;
+}
+
+window.saveGoal=async function(){
+  const ca=parseFloat(document.getElementById('f-consumo-ant').value)||8000;
+  const va=parseFloat(document.getElementById('f-valor-ant').value)||120;
+  const mp=parseFloat(document.getElementById('f-meta-pct').value)||15;
+  const cm=parseFloat(document.getElementById('f-custo-m3').value)||5.50;
+  local.goal={consumoAnt:ca,valorAnt:va,metaPct:mp,custoM3:cm};
+  lsSave(local);
+  await DB.writeGoal(local.goal);
+  pushNotif('success','✅ Meta salva'+(DB.isConnected()?' e sincronizada no MySQL':''),`Meta: ${mp}% sobre ${ca.toLocaleString('pt-BR')} L/mês (${fmtMoney(va)}).`);
+  refreshDashboard();
+  renderMetaPreview();
+};
+
+window.loadGoalForm=function(){
+  document.getElementById('f-consumo-ant').value=local.goal.consumoAnt||'';
+  document.getElementById('f-valor-ant').value=local.goal.valorAnt||'';
+  document.getElementById('f-meta-pct').value=local.goal.metaPct||'';
+  document.getElementById('f-custo-m3').value=local.goal.custoM3||'';
+  renderMetaPreview();
+};
+
+function renderMetaPreview(){
+  const cAnt=local.goal.consumoAnt||8000,meta=local.goal.metaPct||15;
+  const ecoL=cAnt*(meta/100),ecoR=ecoL/1000*(local.goal.custoM3||5.5);
+  document.getElementById('meta-preview').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div style="text-align:center;background:var(--accent-light);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Meta (L)</div>
+        <div style="font-size:22px;font-weight:800;color:var(--accent)">${Math.round(ecoL).toLocaleString('pt-BR')}</div>
+        <div style="font-size:11px;color:var(--text3)">L a economizar</div>
+      </div>
+      <div style="text-align:center;background:var(--green-light);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Economia (R$)</div>
+        <div style="font-size:22px;font-weight:800;color:var(--green)">${fmtMoney(ecoR)}</div>
+        <div style="font-size:11px;color:var(--text3)">por mês estimado</div>
+      </div>
+      <div style="text-align:center;background:var(--teal-light);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Consumo alvo</div>
+        <div style="font-size:22px;font-weight:800;color:var(--teal)">${Math.round(cAnt-ecoL).toLocaleString('pt-BR')}</div>
+        <div style="font-size:11px;color:var(--text3)">L/mês alvo</div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// HISTÓRICO
+// ============================================================
+window.renderHistorico=function(){
+  renderMonthlyChart();
+  const months=getLast6Months();
+  let rows='';
+  for(let i=months.length-1;i>=0;i--){
+    const m=months[i];
+    const cur=local.monthlyAgg[m.key]||0;
+    const prev=i>0?(local.monthlyAgg[months[i-1].key]||0):(local.goal.consumoAnt||0);
+    const eco=prev>0&&cur<prev;
+    const diff=prev>0?((prev-cur)/prev*100).toFixed(1):null;
+    const custo=cur/1000*local.goal.custoM3;
+    rows+=`<tr>
+      <td><strong>${m.label} ${m.key.slice(0,4)}</strong></td>
+      <td style="font-family:var(--mono)">${Math.round(cur).toLocaleString('pt-BR')} L</td>
+      <td>${fmtMoney(custo)}</td>
+      <td style="color:${eco?'var(--green)':'var(--red)'};font-weight:600;font-family:var(--mono)">${diff?(eco?'▼ ':'▲ ')+Math.abs(diff)+'%':'—'}</td>
+      <td><span class="chip ${cur===0?'nd':eco?'eco':'over'}">${cur===0?'Sem dados':eco?'Economia':'Excesso'}</span></td>
+    </tr>`;
+  }
+  [...getWeekKeys(0)].reverse().forEach(d=>{
+    const v=local.dailyAgg[d]||0;if(!v)return;
+    const[,mo,dy]=d.split('-');
+    rows=`<tr>
+      <td><span style="font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:99px">dia</span> ${dy}/${mo}</td>
+      <td style="font-family:var(--mono)">${Math.round(v)} L</td>
+      <td>${fmtMoney(v/1000*local.goal.custoM3)}</td>
+      <td>—</td>
+      <td><span class="chip eco">Registrado${DB.isConnected()?' 🗄️':'💾'}</span></td>
+    </tr>`+rows;
+  });
+  document.getElementById('hist-body').innerHTML=rows||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:30px">Nenhum dado ainda.</td></tr>';
+};
+
+window.clearHistory=function(){
+  if(!confirm('Limpar histórico local? O MySQL não será afetado.'))return;
+  local.dailyAgg={};local.monthlyAgg={};local.totalAllTime=0;local.readCount=0;
+  seedLocal();lsSave(local);
+  renderHistorico();
+  pushNotif('warning','🗑 Histórico local limpo','Dados do MySQL permanecem intactos no servidor.');
+};
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function pushNativeNotif(title,msg){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  new Notification('💧 AquaSense — '+title,{body:msg,tag:'aquasense',renotify:true});
+}
+
+function pushNotif(type,title,msg,save=true){
+  const icons={success:'✅',warning:'⚠️',info:'💧',danger:'🚨'};
+  const id='n_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  const ts=new Date().toLocaleString('pt-BR');
+  const notif={id,type,title,msg,ts,read:false};
+  if(save){
+    local.notifications.unshift(notif);
+    if(local.notifications.length>60)local.notifications.pop();
+    lsSave(local);
+    DB.writeNotif(notif);
+    pushNativeNotif(title,msg);
+  }
+  const unread=local.notifications.filter(n=>!n.read).length;
+  document.getElementById('notif-count').textContent=unread;
+  const bar=document.getElementById('notif-bar');
+  const el=document.createElement('div');
+  el.className=`notif-item ${type}`;el.id=id;
+  el.innerHTML=`<div class="notif-icon">${icons[type]||'ℹ️'}</div>
+    <div class="notif-body">
+      <div class="notif-title">${title}</div>
+      <div class="notif-msg">${msg}</div>
+      <div class="notif-time">${ts}</div>
+    </div>
+    <button class="notif-close" onclick="this.closest('.notif-item').remove()">×</button>`;
+  bar.prepend(el);
+  if(bar.children.length>5)bar.lastChild.remove();
+  setTimeout(()=>{const e=document.getElementById(id);if(e)e.remove();},15000);
+}
+
+window.renderNotifHistory=function(){
+  const c=document.getElementById('notif-history');
+  const icons={success:'✅',warning:'⚠️',info:'💧',danger:'🚨'};
+  if(!local.notifications.length){c.innerHTML='<div style="text-align:center;color:var(--text3);padding:40px">Nenhuma notificação ainda.</div>';return;}
+  c.innerHTML=local.notifications.map(n=>`
+    <div class="notif-hist-item">
+      <div class="nh-icon ${n.type}">${icons[n.type]||'ℹ️'}</div>
+      <div class="nh-body">
+        <div class="nh-title">${n.title}</div>
+        <div class="nh-msg">${n.msg}</div>
+        <div class="nh-time">${n.ts}</div>
+      </div>
+      ${!n.read?'<div class="nh-unread"></div>':''}
+    </div>`).join('');
+};
+
+window.clearNotifs=function(){
+  local.notifications.forEach(n=>n.read=true);
+  lsSave(local);
+  document.getElementById('notif-count').textContent=0;
+  renderNotifHistory();
+};
+
+window.enableBrowserNotifs=function(){
+  if(!('Notification' in window)){alert('Navegador não suporta notificações nativas.');return;}
+  Notification.requestPermission().then(p=>{
+    const btn=document.getElementById('btn-enable-notif');
+    if(p==='granted'){
+      if(btn){btn.textContent='✅ Notificações ativadas';btn.disabled=true;}
+      new Notification('💧 AquaSense',{body:'Notificações do sistema ativadas!'});
+    } else {if(btn)btn.textContent='🚫 Permissão negada';}
+  });
+};
+
+let lastNotifCheck=0;
+function checkSmartNotifs(){
+  const now=Date.now();
+  if(now-lastNotifCheck<30000)return;
+  lastNotifCheck=now;
+  const wk=getWeekKeys(0),pw=getWeekKeys(1);
+  const sem=wk.reduce((a,d)=>a+(local.dailyAgg[d]||0),0);
+  const semAnt=pw.reduce((a,d)=>a+(local.dailyAgg[d]||0),0);
+  if(semAnt>0){
+    const pct=((semAnt-sem)/semAnt*100).toFixed(1);
+    const ecoProj=local.goal.consumoAnt>0?((local.goal.consumoAnt-sem*4.3)/local.goal.consumoAnt*100).toFixed(1):'?';
+    if(parseFloat(pct)>0)
+      pushNotif('success',`💧 Você economizou ${pct}% esta semana!`,`Se continuar nesse ritmo, vai economizar aproximadamente ${ecoProj}% no mês.`);
+    else if(parseFloat(pct)<-5)
+      pushNotif('warning','⚠️ Consumo acima do esperado',`Consumo subiu ${Math.abs(pct)}% vs. semana anterior. Atenção à meta!`);
+  }
+  const mes=local.monthlyAgg[thisMonth()]||0;
+  const meta=local.goal.metaPct||15,cAnt=local.goal.consumoAnt||8000;
+  const eco=cAnt>0?((cAnt-mes)/cAnt*100):0;
+  if(eco>=meta) pushNotif('success',`🎯 Meta de ${meta}% atingida!`,`Parabéns! Consumo atual: ${Math.round(mes).toLocaleString('pt-BR')} L este mês.`);
+}
+
+// ============================================================
+// ARDUINO CONNECTION
+// ============================================================
+function log(msg,cls='log-ok'){
+  const t=document.getElementById('log-terminal');
+  const l=document.createElement('div');l.className=`log-line ${cls}`;
+  l.textContent=`[${new Date().toLocaleTimeString('pt-BR')}] ${msg}`;
+  t.appendChild(l);t.scrollTop=t.scrollHeight;
+}
+
+function setArdStatus(connected,lbl,sub){
+  S.ard.connected=connected;
+  document.getElementById('ard-dot').className='status-dot '+(connected?'live':'red');
+  document.getElementById('ard-status-lbl').textContent='Arduino';
+  document.getElementById('ard-status-sub').textContent=sub||lbl;
+  document.getElementById('s-ard-status').textContent=lbl;
+  document.getElementById('s-ard-status').style.color=connected?'var(--green)':'var(--red)';
+  if(connected){document.getElementById('live-chip').style.display='flex';}
+  else{document.getElementById('live-chip').style.display='none';document.getElementById('live-ring').classList.add('idle');}
+}
+
+window.connectArduino=function(){
+  if(S.ard.pollingId)clearInterval(S.ard.pollingId);
+  if(S.ard.uptimeId)clearInterval(S.ard.uptimeId);
+  S.config.ip=document.getElementById('f-ip').value;
+  S.config.port=document.getElementById('f-port').value;
+  S.config.ep=document.getElementById('f-ep').value;
+  S.config.interval=parseInt(document.getElementById('f-interval').value);
+  S.config.lpp=parseFloat(document.getElementById('f-lpp').value);
+  S.ard.mode=document.getElementById('f-mode').value;
+  S.ard.uptimeSec=0;local.totalSession=0;
+  ALOG.log('🤖','Conectando Arduino — modo: '+S.ard.mode);
+
+  S.ard.uptimeId=setInterval(()=>{
+    S.ard.uptimeSec++;
+    const h=String(Math.floor(S.ard.uptimeSec/3600)).padStart(2,'0');
+    const m=String(Math.floor((S.ard.uptimeSec%3600)/60)).padStart(2,'0');
+    const s=String(S.ard.uptimeSec%60).padStart(2,'0');
+    document.getElementById('ls-uptime').textContent=`${h}:${m}:${s}`;
+  },1000);
+
+  if(S.ard.mode==='mysql'||S.ard.mode==='supabase'){
+    const isSupabase = SUPABASE.isConnected();
+    if(!isSupabase && !DB.isConnected()){ALOG.err('Banco não conectado!');log('Banco não conectado. Configure Supabase ou SQL Server.','log-err');return;}
+    const modeLabel = isSupabase ? 'Supabase' : 'SQL Server';
+    ALOG.log('🤖',`✅ Modo ${modeLabel} — polling leituras em tempo real`);
+    log(`Modo ${modeLabel}: polling de leituras...`,'log-info');
+    setArdStatus(true,`Via ${modeLabel}`,'Polling banco em tempo real');
+    DB.onReading((r)=>{
+      if(!r||r.lpm===undefined)return;
+      const key=String(r.id||r.ts||Date.now());
+      if(key===S.ard.lastKey)return;
+      S.ard.lastKey=key;
+      processReading(parseFloat(r.lpm)||0,isSupabase?'supabase':'mysql');
+      log(`${modeLabel} → ${r.lpm} L/min`,'log-ok');
+    });
+    DB.startPolling(S.config.interval);
+    pushNotif('info',`🗄️ Modo ${modeLabel} ativo`,`Ouvindo dados do Arduino via ${modeLabel}.`);
+  } else {
+    const url=`http://${S.config.ip}:${S.config.port}${S.config.ep}`;
+    ALOG.log('🤖','Modo HTTP → '+url);
+    log(`Polling HTTP: ${url}...`,'log-warn');
+    startLive(url);
+  }
+};
+
+function startLive(url){
+  const doFetch=async()=>{
+    try{
+      const res=await fetch(url,{mode:'cors',signal:AbortSignal.timeout(4000)});
+      const data=await res.json();
+      let lpm=null;
+      if(data.lpm!==undefined)lpm=parseFloat(data.lpm)||0;
+      else if(data.liters!==undefined)lpm=parseFloat(data.liters)||0;
+      else if(data.litros!==undefined)lpm=parseFloat(data.litros)||0;
+      else if(data.flow!==undefined)lpm=parseFloat(data.flow)||0;
+      else if(data.flowRate!==undefined)lpm=parseFloat(data.flowRate)||0;
+      else if(data.vazao!==undefined)lpm=parseFloat(data.vazao)||0;
+      else if(data.pulses!==undefined)lpm=(parseFloat(data.pulses)||0)*S.config.lpp*(60000/S.config.interval);
+      if(lpm!==null){
+        setArdStatus(true,'Conectado',`${S.config.ip}`);
+        processReading(lpm,'http');
+        log(`OK → ${lpm.toFixed(3)} L/min`,'log-ok');
+      } else {
+        log('Resposta sem campo reconhecido: '+JSON.stringify(data).slice(0,80),'log-warn');
+      }
+    } catch(e){log('Erro: '+e.message,'log-err');setArdStatus(false,'Erro','Verifique IP');}
+  };
+  doFetch();
+  S.ard.pollingId=setInterval(doFetch,S.config.interval);
+}
+
+window.disconnectArduino=function(){
+  if(S.ard.pollingId)clearInterval(S.ard.pollingId);
+  if(S.ard.uptimeId)clearInterval(S.ard.uptimeId);
+  S.ard.pollingId=null;S.ard.uptimeId=null;
+  setArdStatus(false,'Desconectado','Inativo');
+  log('Desconectado.','log-warn');
+  document.getElementById('live-val').textContent='0.000';
+};
+
+
+// ============================================================
+// SUPABASE ADAPTER
+// ============================================================
+const SUPABASE = (() => {
+  let _url = '';
+  let _key = '';
+  let _connected = false;
+
+  // ── Supabase REST helpers ────────────────────────────────
+  async function _get(table, params = '') {
+    const r = await fetch(`${_url}/rest/v1/${table}${params}`, {
+      headers: { apikey: _key, Authorization: 'Bearer ' + _key, Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' GET ' + table);
+    return r.json();
+  }
+
+  async function _upsert(table, body) {
+    const r = await fetch(`${_url}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        apikey: _key, Authorization: 'Bearer ' + _key,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(7000)
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      throw new Error('HTTP ' + r.status + ' ' + err.substring(0, 120));
+    }
+    return true;
+  }
+
+  async function ping() {
+    // Ping via REST: busca 1 registro de qualquer tabela
+    const r = await fetch(`${_url}/rest/v1/goal?limit=1`, {
+      headers: { apikey: _key, Authorization: 'Bearer ' + _key },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return true;
+  }
+
+  // ── Conexão ─────────────────────────────────────────────
+  async function connect(url, key) {
+    if (url) _url = url.replace(/\/$/, '');
+    if (key) _key = key;
+    try {
+      await ping();
+      _connected = true;
+      localStorage.setItem('aquasense_sb_url', _url);
+      localStorage.setItem('aquasense_sb_key', _key);
+      _applyToDB();
+      _log('⚡ Supabase conectado ✓', 'log-ok');
+      return true;
+    } catch (e) {
+      _connected = false;
+      _log('Supabase: falha ao conectar — ' + e.message, 'log-err');
+      return false;
+    }
+  }
+
+  function disconnect() {
+    _connected = false;
+    localStorage.removeItem('aquasense_sb_url');
+    localStorage.removeItem('aquasense_sb_key');
+    _url = ''; _key = '';
+  }
+
+  function isConnected() { return _connected; }
+  function getUrl()      { return _url; }
+
+  // ── Sobrescreve os métodos do DB com versão Supabase ─────
+  function _applyToDB() {
+    // Override DB internal fetches via monkey-patching the global DB object
+    // We redirect all DB operations through Supabase REST API
+
+    // Patch: DB.connect → marca como conectado direto
+    DB._sbMode = true;
+
+    // Intercept via custom event that the dashboard checks
+    window._sbAdapter = {
+      async writeReading(lpm, dateKey, monthKey, dailyVal, monthlyVal) {
+        if (!_connected) return;
+        try {
+          await _upsert('leituras', { lpm, data: dateKey, ts: Date.now() });
+          await _upsert('daily', { data: dateKey, litros: dailyVal });
+          await _upsert('monthly', { mes: monthKey, litros: monthlyVal });
+        } catch (e) { _log('Supabase writeReading: ' + e.message, 'log-err'); }
+      },
+      async writeGoal(goal) {
+        if (!_connected) return;
+        try { await _upsert('goal', { id: 1, ...goal }); _log('Meta salva no Supabase ✓', 'log-ok'); }
+        catch (e) { _log('Supabase writeGoal: ' + e.message, 'log-err'); }
+      },
+      async writeNotif(notif) {
+        if (!_connected) return;
+        try { await _upsert('notifications', notif); }
+        catch (e) { /* silencioso */ }
+      },
+      async syncAll() {
+        if (!_connected) return {};
+        try {
+          const [dailyArr, monthlyArr, goalArr, notifsArr] = await Promise.all([
+            _get('daily', '?order=data.desc'),
+            _get('monthly', '?order=mes.desc'),
+            _get('goal', '?id=eq.1&limit=1'),
+            _get('notifications', '?order=ts.desc&limit=50')
+          ]);
+          const daily = {}, monthly = {};
+          (dailyArr || []).forEach(r => { daily[r.data] = r.litros; });
+          (monthlyArr || []).forEach(r => { monthly[r.mes] = r.litros; });
+          _log('Sincronizado do Supabase ✓', 'log-ok');
+          return { daily, monthly, goal: goalArr[0] || {}, notifs: notifsArr || [] };
+        } catch (e) {
+          _log('Supabase sync: ' + e.message, 'log-warn');
+          return {};
+        }
+      },
+      async getLastReading() {
+        if (!_connected) return null;
+        try {
+          const arr = await _get('leituras', '?order=ts.desc&limit=1');
+          return arr && arr[0] ? arr[0] : null;
+        } catch (e) { return null; }
+      },
+      async getSnapshot() {
+        if (!_connected) return null;
+        try {
+          const [dailyArr, monthlyArr, goalArr, notifsArr, lastArr] = await Promise.all([
+            _get('daily', '?order=data.desc'),
+            _get('monthly', '?order=mes.desc'),
+            _get('goal', '?id=eq.1&limit=1'),
+            _get('notifications', '?order=ts.desc&limit=20'),
+            _get('leituras', '?order=ts.desc&limit=1')
+          ]);
+          const daily = {}, monthly = {};
+          (dailyArr || []).forEach(r => { daily[r.data] = r.litros; });
+          (monthlyArr || []).forEach(r => { monthly[r.mes] = r.litros; });
+          return { daily, monthly, goal: goalArr[0] || {}, notifications: notifsArr || [], lastReading: lastArr[0] || null };
+        } catch (e) { return null; }
+      }
+    };
+
+    // Mark DB as connected (reuse status display)
+    DB._connected_sb = true;
+    _updateBannerSB(true);
+  }
+
+  function _updateBannerSB(connected) {
+    const banner = document.getElementById('db-banner');
+    if (!banner) return;
+    if (connected) {
+      banner.className = 'db-banner';
+      banner.innerHTML = `<div class="db-banner-icon">⚡</div><div><h3>Supabase conectado!</h3><p>Dados sincronizados com o Supabase PostgreSQL. Leituras do Arduino são persistidas automaticamente via REST API.</p></div>`;
+    } else {
+      banner.className = 'db-banner disconnected';
+      banner.innerHTML = `<div class="db-banner-icon">⚡</div><div><h3>Supabase não configurado</h3><p>Abra o <strong>Servidor na Nuvem → Conectar → Supabase</strong> para configurar.</p><button class="btn btn-ghost btn-sm" onclick="openCloudModal()">Abrir configuração →</button></div>`;
+    }
+    const dot = document.getElementById('db-dot');
+    if (dot) dot.className = 'status-dot ' + (connected ? 'live' : 'amber');
+    const subEl = document.getElementById('db-status-sub');
+    if (subEl) subEl.textContent = connected ? _url.replace('https://','').substring(0,28) : 'Não configurado';
+    const srcLbl = document.getElementById('db-source-label');
+    if (srcLbl) srcLbl.textContent = 'Fonte: ' + (connected ? 'Supabase ⚡' : 'local 💾');
+  }
+
+  function _log(msg, cls = 'log-ok') {
+    const t = document.getElementById('fb-terminal') || document.getElementById('editor-terminal');
+    if (!t) return;
+    const l = document.createElement('div');
+    l.className = 'log-line ' + cls;
+    l.textContent = '[' + new Date().toLocaleTimeString('pt-BR') + '] ' + msg;
+    t.appendChild(l);
+    t.scrollTop = t.scrollHeight;
+  }
+
+  // Carregar credenciais salvas
+  function loadSaved() {
+    const url = localStorage.getItem('aquasense_sb_url');
+    const key = localStorage.getItem('aquasense_sb_key');
+    if (url) _url = url;
+    if (key) _key = key;
+    return !!(url && key);
+  }
+
+  return { connect, disconnect, isConnected, getUrl, loadSaved, ping };
+})();
+
+// ── Patchear DB.writeReading / writeGoal etc. para Supabase ──
+// Guardamos os originais e delegamos se o modo Supabase estiver ativo
+const _origDB_writeReading = DB.writeReading.bind(DB);
+const _origDB_writeGoal    = DB.writeGoal.bind(DB);
+const _origDB_writeNotif   = DB.writeNotif.bind(DB);
+const _origDB_syncAll      = DB.syncAll.bind(DB);
+const _origDB_getSnapshot  = DB.getSnapshot.bind(DB);
+const _origDB_getLastReading = DB.getLastReading.bind(DB);
+
+// Override via prototype trick — redefinimos as funções no objeto DB
+DB.writeReading = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.writeReading(...args);
+  return _origDB_writeReading(...args);
+};
+DB.writeGoal = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.writeGoal(...args);
+  return _origDB_writeGoal(...args);
+};
+DB.writeNotif = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.writeNotif(...args);
+  return _origDB_writeNotif(...args);
+};
+DB.syncAll = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.syncAll(...args);
+  return _origDB_syncAll(...args);
+};
+DB.getSnapshot = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.getSnapshot(...args);
+  return _origDB_getSnapshot(...args);
+};
+DB.getLastReading = async function(...args) {
+  if (SUPABASE.isConnected() && window._sbAdapter) return window._sbAdapter.getLastReading(...args);
+  return _origDB_getLastReading(...args);
+};
+DB.isConnected = function() {
+  return SUPABASE.isConnected() || DB._connected_legacy;
+};
+// Salvar referência ao isConnected original
+DB._connected_legacy = false;
+
+// ── UI do painel Supabase ─────────────────────────────────
+
+window.setConnMode = function(mode) {
+  const btnApi = document.getElementById('conn-mode-api');
+  const btnSb  = document.getElementById('conn-mode-supabase');
+  const panelApi = document.getElementById('conn-panel-api');
+  const panelSb  = document.getElementById('conn-panel-supabase');
+  if (mode === 'supabase') {
+    btnApi.classList.remove('active'); btnSb.classList.add('active');
+    panelApi.style.display = 'none'; panelSb.style.display = '';
+    // Preencher se já tiver credenciais salvas
+    const savedUrl = localStorage.getItem('aquasense_sb_url');
+    const savedKey = localStorage.getItem('aquasense_sb_key');
+    if (savedUrl) document.getElementById('sb-url-input').value = savedUrl;
+    if (savedKey) document.getElementById('sb-key-input').value = savedKey;
+    sbCheckReady();
+    if (SUPABASE.isConnected()) _showSbStatus(true);
+  } else {
+    btnSb.classList.remove('active'); btnApi.classList.add('active');
+    panelSb.style.display = 'none'; panelApi.style.display = '';
+    renderUrlHistory();
+  }
+};
+
+window.sbCheckReady = function() {
+  const url = (document.getElementById('sb-url-input') || {}).value || '';
+  const key = (document.getElementById('sb-key-input') || {}).value || '';
+  const ok = (url.includes('supabase.co') || url.startsWith('https://')) && key.length > 20;
+  const testBtn = document.getElementById('sb-test-btn');
+  const saveBtn = document.getElementById('sb-save-btn');
+  if (testBtn) testBtn.disabled = !ok;
+  if (saveBtn) saveBtn.disabled = !ok;
+};
+
+window.sbToggleKeyVis = function() {
+  const inp = document.getElementById('sb-key-input');
+  const btn = document.getElementById('sb-eye-btn');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+};
+
+window.testSupabase = async function() {
+  const url = (document.getElementById('sb-url-input').value || '').trim().replace(/\/$/, '');
+  const key = (document.getElementById('sb-key-input').value || '').trim();
+  const res = document.getElementById('sb-test-result');
+  res.textContent = '🔄 Testando conexão com Supabase...'; res.style.color = 'var(--text3)';
+  try {
+    const t0 = Date.now();
+    const r = await fetch(url + '/rest/v1/goal?limit=1', {
+      headers: { apikey: key, Authorization: 'Bearer ' + key },
+      signal: AbortSignal.timeout(8000)
+    });
+    const ms = Date.now() - t0;
+    if (r.status === 401) throw new Error('API Key inválida (401 Unauthorized)');
+    if (r.status === 404) throw new Error('Projeto não encontrado. Verifique a URL.');
+    if (r.status === 400) {
+      res.textContent = `⚠️ Conexão OK (${ms}ms) — tabela "goal" ainda não existe. Crie as tabelas primeiro.`;
+      res.style.color = 'var(--amber)'; return;
+    }
+    res.textContent = `✅ Supabase acessível! Latência: ${ms}ms · Projeto: ${url.replace('https://','').split('.')[0]}`;
+    res.style.color = 'var(--green)';
+  } catch(e) {
+    res.textContent = '❌ ' + e.message;
+    res.style.color = 'var(--red)';
+  }
+};
+
+window.saveSupabase = async function() {
+  const url = (document.getElementById('sb-url-input').value || '').trim().replace(/\/$/, '');
+  const key = (document.getElementById('sb-key-input').value || '').trim();
+  const res = document.getElementById('sb-test-result');
+  const saveBtn = document.getElementById('sb-save-btn');
+  saveBtn.disabled = true; saveBtn.textContent = '⏳ Conectando...';
+  res.textContent = '🔄 Autenticando no Supabase...'; res.style.color = 'var(--text3)';
+  const ok = await SUPABASE.connect(url, key);
+  saveBtn.disabled = false; saveBtn.textContent = '⚡ Conectar Supabase';
+  if (ok) {
+    res.textContent = '✅ Supabase conectado com sucesso!'; res.style.color = 'var(--green)';
+    _showSbStatus(true);
+    updateServerPill('online', url.replace('https://','').split('.')[0] + '.supabase.co', '⚡');
+    // Sincronizar dados
+    const data = await window._sbAdapter.syncAll();
+    if (data && data.daily) syncFromSupabase(data);
+    pushNotif('success', '⚡ Supabase conectado!', 'Banco PostgreSQL ativo: ' + url.replace('https://','').split('.')[0]);
+    // Iniciar polling de leituras automaticamente
+    DB.onReading((r)=>{
+      if(!r||r.lpm===undefined)return;
+      const key=String(r.id||r.ts||Date.now());
+      if(window._lastAutoKey===key)return;
+      window._lastAutoKey=key;
+      processReading(parseFloat(r.lpm)||0,'supabase');
+    });
+    DB.startPolling(5000);
+    setTimeout(() => closeCloudModal(), 1200);
+  } else {
+    res.textContent = '❌ Falha na conexão. Verifique URL e API Key.'; res.style.color = 'var(--red)';
+  }
+};
+
+window.disconnectSupabase = function() {
+  SUPABASE.disconnect();
+  _showSbStatus(false);
+  updateServerPill('offline', 'Desconectado', '⚫');
+  pushNotif('warning', '⚡ Supabase desconectado', 'App usando dados locais.');
+};
+
+function _showSbStatus(connected) {
+  const box = document.getElementById('sb-status-box');
+  const discBtn = document.getElementById('sb-disconnect-btn');
+  const saveBtn = document.getElementById('sb-save-btn');
+  if (box) { box.style.display = connected ? '' : 'none'; }
+  if (connected) {
+    const urlEl = document.getElementById('sb-status-url');
+    if (urlEl) urlEl.textContent = SUPABASE.getUrl();
+  }
+  if (discBtn) discBtn.style.display = connected ? '' : 'none';
+  if (saveBtn) saveBtn.style.display = connected ? 'none' : '';
+}
+
+function syncFromSupabase(data) {
+  if (!data) return;
+  if (data.daily)   Object.assign(local.dailyAgg, data.daily);
+  if (data.monthly) Object.assign(local.monthlyAgg, data.monthly);
+  if (data.goal && data.goal.consumoAnt) {
+    local.goal.consumoAnt = data.goal.consumoAnt;
+    local.goal.valorAnt   = data.goal.valorAnt;
+    local.goal.metaPct    = data.goal.metaPct;
+    local.goal.custoM3    = data.goal.custoM3;
+  }
+  refreshDashboard();
+}
+
+// ============================================================
+// CLOUD SERVER CONTROL
+// ============================================================
+const CLOUD = {
+  _currentProvider: 'azure',
+  _deploySteps: {
+    azure: [
+      {title:'Crie uma conta gratuita no Azure', desc:'Acesse <code>portal.azure.com</code> e crie uma conta. Novos usuários ganham USD 200 de crédito por 30 dias. O App Service tem plano <strong>Free (F1)</strong> permanente.'},
+      {title:'Crie um App Service (Node.js)', desc:'No portal, clique em "Criar recurso" → "App Service". Configure: <strong>Runtime: Node 18 LTS</strong>, Plano: <strong>F1 (Free)</strong>, SO: Linux. Dê um nome único ao app (ex: <code>aquasense-api</code>).'},
+      {title:'Crie um Azure SQL Database', desc:'Vá em "Criar recurso" → "SQL Database". Escolha o tier <strong>Basic (5 DTU)</strong> — ~USD 5/mês ou use os créditos gratuitos. Anote o servidor, usuário e senha criados.'},
+      {title:'Configure as variáveis de ambiente', desc:'No App Service → "Configuração" → "Configurações do aplicativo", adicione: <code>DB_SERVER</code> (ex: aquasense.database.windows.net), <code>DB_USER</code>, <code>DB_PASSWORD</code>, <code>DB_NAME=aquasense</code>, <code>PORT=3000</code>.'},
+      {title:'Execute o schema SQL', desc:'No portal Azure SQL, abra o "Editor de consultas" e execute o conteúdo do arquivo <code>aquasense-schema.sql</code> (baixe abaixo) para criar as tabelas. Libere seu IP nas regras de firewall.'},
+      {title:'Faça o deploy do aquasense-api.js', desc:'Baixe o arquivo <code>aquasense-api.js</code> abaixo. No App Service, vá em "Centro de Implantação" → "Implantação local do Git" ou use o <strong>VS Code com extensão Azure</strong>. Após o deploy, copie a URL pública (ex: <code>https://aquasense-api.azurewebsites.net/api</code>) e cole na aba "Conectar".'},
+    ],
+    railway: [
+      {title:'Crie uma conta gratuita', desc:'Acesse <code>railway.app</code> e crie uma conta com GitHub. É gratuito até 5 USD/mês de uso (mais que suficiente).'},
+      {title:'Crie um projeto Node.js', desc:'Clique em "New Project" → "Deploy from GitHub repo" e conecte o repositório com o <code>aquasense-api.js</code>. Ou use "Empty Project" e faça upload manual.'},
+      {title:'Adicione MySQL', desc:'No painel do projeto, clique em "Add Service" → "Database" → "MySQL". O Railway provisiona automaticamente. Copie as variáveis de ambiente.'},
+      {title:'Configure as variáveis de ambiente', desc:'Em "Settings" → "Variables", adicione: <code>DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, PORT</code>. Use os valores do MySQL provisionado.'},
+      {title:'Execute o schema SQL', desc:'No painel MySQL do Railway, execute o conteúdo do arquivo <code>aquasense-schema.sql</code> para criar as tabelas.'},
+      {title:'Copie a URL pública', desc:'Em "Settings" do serviço Node.js, copie a URL pública (tipo <code>https://xxx.railway.app</code>). Cole na aba "Conectar" acima com <code>/api</code> no final.'},
+    ],
+    render: [
+      {title:'Crie uma conta no Render', desc:'Acesse <code>render.com</code> e registre-se com GitHub. O plano free é suficiente para projetos pequenos.'},
+      {title:'Crie um Web Service', desc:'Clique em "New" → "Web Service". Conecte o repositório GitHub com <code>aquasense-api.js</code>. Runtime: Node. Build: <code>npm install</code>. Start: <code>node aquasense-api.js</code>.'},
+      {title:'Adicione um banco PostgreSQL', desc:'No Render, MySQL gratuito não está disponível. Crie um "PostgreSQL" free. Você precisará adaptar o <code>aquasense-api.js</code> trocando <code>mysql2</code> por <code>pg</code>.'},
+      {title:'Configure variáveis de ambiente', desc:'Em "Environment Variables", adicione as credenciais do banco PostgreSQL fornecidas pelo Render.'},
+      {title:'Aguarde o deploy', desc:'O Render faz o deploy automaticamente. A URL pública estará em "Settings". Cole na aba "Conectar" com <code>/api</code> no final.'},
+    ],
+    fly: [
+      {title:'Instale o flyctl', desc:'Execute <code>curl -L https://fly.io/install.sh | sh</code> no terminal. Depois <code>fly auth login</code>.'},
+      {title:'Inicialize a aplicação', desc:'Na pasta do projeto, execute <code>fly launch</code>. Escolha a região mais próxima (GRU para São Paulo).'},
+      {title:'Adicione MySQL via plugin', desc:'Execute <code>fly mysql create</code> para provisionar um banco MySQL gerenciado. Siga as instruções para obter as credenciais.'},
+      {title:'Configure os secrets', desc:'Execute <code>fly secrets set DB_HOST=... DB_USER=... DB_PASSWORD=... DB_NAME=aquasense</code> com as credenciais do MySQL.'},
+      {title:'Deploy e obtenha a URL', desc:'Execute <code>fly deploy</code>. A URL pública será mostrada ao final. Cole na aba "Conectar" com <code>/api</code>.'},
+    ],
+    supabase: [
+      {title:'Crie uma conta gratuita no Supabase', desc:'Acesse <code>supabase.com</code> e clique em "Start your project". Faça login com GitHub. O plano gratuito inclui banco PostgreSQL, até 500 MB de armazenamento e API REST automática — sem precisar de servidor Node.js próprio.'},
+      {title:'Crie um novo projeto', desc:'Clique em "New project". Escolha um nome (ex: <code>aquasense</code>), defina uma senha forte para o banco e selecione a região <strong>South America (São Paulo)</strong> para menor latência. Aguarde ~2 minutos para o projeto ser criado.'},
+      {title:'Execute o schema SQL no Editor', desc:'No menu lateral, vá em <strong>SQL Editor</strong> → "New query". Baixe e cole o conteúdo do arquivo <code>aquasense-schema-supabase.sql</code> (disponível abaixo). Clique em <strong>Run</strong>. Isso criará as tabelas <code>leituras</code>, <code>daily</code>, <code>monthly</code>, <code>goal</code> e <code>notifications</code>.'},
+      {title:'Obtenha a URL e a chave de API', desc:'Vá em <strong>Project Settings</strong> → <strong>API</strong>. Copie a <strong>Project URL</strong> (ex: <code>https://xxxx.supabase.co</code>) e a <strong>anon public key</strong>. Você vai precisar dos dois no próximo passo.'},
+      {title:'Configure as Row Level Security (RLS)', desc:'No <strong>SQL Editor</strong>, execute: <code>ALTER TABLE leituras ENABLE ROW LEVEL SECURITY;</code> — repita para cada tabela. Em seguida, vá em <strong>Authentication → Policies</strong> e crie uma policy "Enable all for anon" em cada tabela para permitir leituras e gravações sem login (adequado para IoT local).'},
+      {title:'Cole a URL e a chave no AquaSense', desc:'Na aba <strong>Conectar</strong> acima, cole a URL no formato: <code>https://xxxx.supabase.co</code>. O AquaSense usa o adaptador Supabase que substitui automaticamente os endpoints <code>/api/*</code> pela API REST nativa do Supabase (<code>/rest/v1/</code>). Salve e pronto — nenhum servidor Node.js necessário!'},
+    ],
+    vercel: [
+      {title:'Crie uma conta na Vercel', desc:'Acesse <code>vercel.com</code>. Para usar com Node.js persistente, você precisará criar um arquivo <code>api/index.js</code> e configurar <code>vercel.json</code>.'},
+      {title:'Configure o PlanetScale (MySQL serverless)', desc:'Acesse <code>planetscale.com</code> e crie um banco MySQL gratuito. PlanetScale é compatível com o driver <code>mysql2</code> sem alterações.'},
+      {title:'Adapte o aquasense-api.js', desc:'Exporte o app Express como handler da Vercel: <code>module.exports = app</code>. Renomeie para <code>api/index.js</code>.'},
+      {title:'Configure variáveis de ambiente', desc:'No painel Vercel → Settings → Environment Variables, adicione as credenciais do PlanetScale.'},
+      {title:'Deploy automático', desc:'Conecte o repositório GitHub. A Vercel faz deploy automático. A URL pública será gerada. Cole na aba "Conectar" com <code>/api</code>.'},
+    ],
+  }
+};
+
+window.openCloudModal = function() {
+  document.getElementById('cloud-modal').classList.add('open');
+  // Pre-fill with current URL
+  const curUrl = DB.getApiBase();
+  document.getElementById('cloud-url-input').value = curUrl || '';
+  // Pre-fill Supabase URL
+  const sbUrlEl = document.getElementById('sb-url-input');
+  if (sbUrlEl && !sbUrlEl.value) {
+    sbUrlEl.value = localStorage.getItem('aquasense_sb_url') || SUPABASE_DEFAULT_URL;
+    sbCheckReady();
+  }
+  // Default to Supabase tab if not connected via API
+  if (!DB._connected_legacy) {
+    setConnMode('supabase');
+  }
+  renderUrlHistory();
+  renderDeploySteps(CLOUD._currentProvider);
+  checkCloudStatus();
+};
+
+window.closeCloudModal = function() {
+  document.getElementById('cloud-modal').classList.remove('open');
+};
+
+// Close on backdrop click — safe, runs after DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  var m = document.getElementById('cloud-modal');
+  if(m) m.addEventListener('click', function(e) { if(e.target === this) closeCloudModal(); });
+});
+
+window.cloudTab = function(btn, tabId) {
+  document.querySelectorAll('.cloud-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cloud-tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ctab-' + tabId).classList.add('active');
+  if(tabId === 'status') checkCloudStatus();
+};
+
+window.selectProvider = function(prov) {
+  CLOUD._currentProvider = prov;
+  document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('prov-' + prov).classList.add('selected');
+  renderDeploySteps(prov);
+};
+
+function renderDeploySteps(prov) {
+  const steps = CLOUD._deploySteps[prov] || [];
+  const el = document.getElementById('deploy-steps');
+  if(!el) return;
+  el.innerHTML = steps.map((s, i) => `
+    <div class="cloud-step">
+      <div class="cloud-step-num">${i+1}</div>
+      <div>
+        <h4>${s.title}</h4>
+        <p>${s.desc}</p>
+      </div>
+    </div>`).join('');
+}
+
+function renderUrlHistory() {
+  const saved = JSON.parse(localStorage.getItem('aquasense_url_history') || '[]');
+  const el = document.getElementById('cloud-url-history');
+  if(!el) return;
+  if(!saved.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--text3)">Nenhuma URL salva ainda.</span>';
+    return;
+  }
+  el.innerHTML = saved.map(url => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+      <span style="flex:1;font-family:var(--mono);font-size:11px;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${url}</span>
+      <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px" onclick="useCloudUrl('${url.replace(/'/g,"\'")}')">Usar</button>
+    </div>`).join('');
+}
+
+window.useCloudUrl = function(url) {
+  document.getElementById('cloud-url-input').value = url;
+  saveCloudUrl();
+};
+
+window.testCloudUrl = async function() {
+  const url = document.getElementById('cloud-url-input').value.trim();
+  const res = document.getElementById('cloud-test-result');
+  if(!url) { res.className='err'; res.textContent='⚠️ Digite uma URL primeiro.'; return; }
+  res.className=''; res.textContent='🔄 Testando conexão...'; res.style.display='block';
+  try {
+    const t0 = Date.now();
+    const r = await fetch(url.endsWith('/api') ? url+'/ping' : url+'/ping', { signal: AbortSignal.timeout(8000) });
+    const ms = Date.now() - t0;
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    res.className = 'ok';
+    res.textContent = `✅ Conexão OK! Latência: ${ms}ms · MySQL: ${data.database || 'conectado'} · Versão: ${data.version||'—'}`;
+  } catch(e) {
+    res.className = 'err';
+    res.textContent = `❌ Falha: ${e.message}. Verifique se o servidor está online e a URL está correta.`;
+  }
+};
+
+window.saveCloudUrl = async function() {
+  const url = document.getElementById('cloud-url-input').value.trim();
+  if(!url) return;
+  // Save to history
+  const hist = JSON.parse(localStorage.getItem('aquasense_url_history') || '[]');
+  if(!hist.includes(url)) { hist.unshift(url); if(hist.length>5) hist.pop(); }
+  localStorage.setItem('aquasense_url_history', JSON.stringify(hist));
+  // Connect
+  updateServerPill('connecting', 'Conectando...', '🔄');
+  const ok = await DB.connect(url);
+  if(ok) {
+    updateServerPill('online', url.replace('https://','').replace('/api','').substring(0,22)+'…', '☁️');
+    syncFromMySQL();
+    pushNotif('success', '☁️ Servidor conectado!', 'API em nuvem ativa: ' + url);
+    closeCloudModal();
+  } else {
+    updateServerPill('offline', 'Erro de conexão', '❌');
+  }
+  renderUrlHistory();
+};
+
+window.toggleServer = async function() {
+  const toggle = document.getElementById('srv-toggle');
+  if(DB.isConnected()) {
+    // Disconnect / "turn off"
+    DB.disconnect();
+    updateServerPill('offline', 'Desligado', '⚫');
+    pushNotif('warning', '⚫ Servidor desconectado', 'App usando dados locais até reconectar.');
+  } else {
+    // Try to reconnect with saved URL
+    const saved = DB.getApiBase();
+    if(!saved || saved.includes('localhost')) {
+      openCloudModal();
+      return;
+    }
+    updateServerPill('connecting', 'Conectando...', '🔄');
+    const ok = await DB.connect(saved);
+    if(ok) {
+      updateServerPill('online', saved.replace('https://','').replace('/api','').substring(0,22), '☁️');
+      syncFromMySQL();
+      pushNotif('success', '☁️ Servidor religado!', 'Reconectado: ' + saved);
+    } else {
+      updateServerPill('offline', 'Falha ao conectar', '❌');
+      openCloudModal();
+    }
+  }
+};
+
+function updateServerPill(state, sub, icon) {
+  const pill = document.getElementById('server-pill');
+  const dot = document.getElementById('srv-dot');
+  const lbl = document.getElementById('srv-status-lbl');
+  const sublbl = document.getElementById('srv-status-sub');
+  const toggle = document.getElementById('srv-toggle');
+  if(!pill) return;
+  pill.className = 'server-pill ' + (state === 'online' ? 'online' : state === 'connecting' ? 'connecting' : 'offline');
+  dot.className = 'status-dot ' + (state === 'online' ? 'live' : state === 'connecting' ? 'amber' : 'red');
+  lbl.textContent = (icon ? icon + ' ' : '') + 'Servidor API';
+  sublbl.textContent = sub;
+  toggle.className = 'server-toggle ' + (state === 'online' ? 'on' : 'off');
+}
+
+window.checkCloudStatus = async function() {
+  const url = DB.getApiBase();
+  document.getElementById('cstat-url').textContent = url || '—';
+  if(!url || !DB.isConnected()) {
+    document.getElementById('cstat-server').textContent = '⚫';
+    document.getElementById('cstat-server-sub').textContent = 'Offline';
+    document.getElementById('cstat-ping').textContent = '—';
+    document.getElementById('cstat-db').textContent = '—';
+    document.getElementById('cstat-db-sub').textContent = '—';
+    return;
+  }
+  try {
+    const t0 = Date.now();
+    const r = await fetch(url + '/ping', { signal: AbortSignal.timeout(6000) });
+    const ms = Date.now() - t0;
+    const data = await r.json();
+    document.getElementById('cstat-server').textContent = '🟢';
+    document.getElementById('cstat-server-sub').textContent = 'Online';
+    document.getElementById('cstat-ping').textContent = ms;
+    document.getElementById('cstat-db').textContent = '✅';
+    document.getElementById('cstat-db-sub').textContent = data.database || 'aquasense';
+  } catch(e) {
+    document.getElementById('cstat-server').textContent = '🔴';
+    document.getElementById('cstat-server-sub').textContent = 'Offline';
+    document.getElementById('cstat-ping').textContent = '—';
+  }
+};
+
+// Sync server pill on boot (called after DB.connect in boot())
+function syncServerPill() {
+  if(DB.isConnected()) {
+    const url = DB.getApiBase();
+    const isCloud = url && !url.includes('localhost') && !url.includes('127.0.0.1');
+    updateServerPill('online', isCloud ? (url.replace('https://','').replace('/api','').substring(0,24)) : 'localhost', isCloud ? '☁️' : '🖥');
+  } else {
+    updateServerPill('offline', 'Desligado', '⚫');
+  }
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+window.exportData=function(){
+  const data={
+    exportedAt:new Date().toISOString(),
+    source:DB.isConnected()?'MySQL':'localStorage',
+    apiBase:DB.getApiBase(),
+    goal:local.goal,
+    daily:local.dailyAgg,
+    monthly:local.monthlyAgg,
+    totalAllTime:local.totalAllTime,
+    readCount:local.readCount
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`aquasense_${today()}.json`;
+  a.click();
+  pushNotif('success','⬇ Exportado',`aquasense_${today()}.json — Fonte: ${data.source}`);
+};
+
+// ============================================================
+// EDITOR DE CÓDIGO
+// ============================================================
+function editorLog(msg,cls='log-ok'){
+  const t=document.getElementById('editor-terminal');
+  if(!t)return;
+  const l=document.createElement('div');
+  l.className='log-line '+cls;
+  l.textContent='['+new Date().toLocaleTimeString('pt-BR')+'] '+msg;
+  t.appendChild(l);
+  t.scrollTop=t.scrollHeight;
+}
+
+function editorTab(e){
+  if(e.key!=='Tab')return;
+  e.preventDefault();
+  const ta=e.target;
+  const s=ta.selectionStart,end=ta.selectionEnd;
+  ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(end);
+  ta.selectionStart=ta.selectionEnd=s+2;
+}
+
+function editorContarLinhas(which){
+  const id=which==='app'?'editor-app':'editor-db';
+  const lblId=which==='app'?'app-line-count':'db-status-lbl-editor';
+  const ta=document.getElementById(id);
+  const lbl=document.getElementById(lblId);
+  if(ta&&lbl)lbl.textContent=ta.value.split('\n').length.toLocaleString('pt-BR')+' linhas';
+}
+
+function editorCopiar(which){
+  const id=which==='app'?'editor-app':'editor-db';
+  const ta=document.getElementById(id);
+  if(!ta)return;
+  navigator.clipboard.writeText(ta.value).then(()=>{editorLog('Copiado para área de transferência.','log-ok');});
+}
+
+function editorSalvar(){
+  const ta=document.getElementById('editor-app');
+  if(!ta)return;
+  const blob=new Blob([ta.value],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='AquaSense_editado.html';
+  a.click();
+  const msg=document.getElementById('app-saved-msg');
+  if(msg){msg.textContent='✓ Salvo!';setTimeout(()=>{if(msg)msg.textContent='';},3000);}
+  editorLog('Arquivo salvo como AquaSense_editado.html','log-ok');
+}
+
+async function editorRecarregarDb(){
+  const lbl=document.getElementById('db-status-lbl-editor');
+  const ta=document.getElementById('editor-db');
+  if(!ta)return;
+  if(!DB.isConnected()){editorLog('MySQL não conectado. Abra o Painel MySQL.','log-err');return;}
+  if(lbl)lbl.textContent='Carregando…';
+  try{
+    const snap=await DB.getSnapshot();
+    ta.value=JSON.stringify(snap||{},null,2);
+    const lines=ta.value.split('\n').length;
+    if(lbl)lbl.textContent=lines.toLocaleString('pt-BR')+' linhas';
+    editorLog('Banco carregado — '+lines+' linhas ✓','log-ok');
+  }catch(e){
+    if(lbl)lbl.textContent='Erro ao carregar';
+    editorLog('Erro: '+e.message,'log-err');
+  }
+}
+
+function editorInit(){
+  const taApp=document.getElementById('editor-app');
+  if(taApp&&!taApp.value){
+    taApp.value=document.documentElement.outerHTML;
+    editorContarLinhas('app');
+  }
+  editorRecarregarDb();
+}
+
+window.editorCopiar=editorCopiar;
+window.editorSalvar=editorSalvar;
+window.editorRecarregarDb=editorRecarregarDb;
+window.editorContarLinhas=editorContarLinhas;
+window.editorTab=editorTab;
+
+// ============================================================
+// DOWNLOAD ARQUIVOS DO SERVIDOR SQL SERVER
+// ============================================================
+window.downloadApiFile = function() {
+  const content = `// aquasense-api.js — AquaSense v4 SQL Server Edition
+// Servidor Node.js + Express + mssql
+// Deploy: Azure App Service, Railway, Render, Fly.io
+// npm install express mssql cors dotenv
+
+require('dotenv').config();
+const express = require('express');
+const sql = require('mssql');
+const cors = require('cors');
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const dbConfig = {
+  server: process.env.DB_SERVER || 'localhost',
+  database: process.env.DB_NAME || 'aquasense',
+  user: process.env.DB_USER || 'sa',
+  password: process.env.DB_PASSWORD || '',
+  port: parseInt(process.env.DB_PORT || '1433'),
+  options: {
+    encrypt: process.env.DB_ENCRYPT !== 'false', // true para Azure
+    trustServerCertificate: process.env.DB_TRUST_CERT === 'true'
+  },
+  pool: { max: 10, min: 0, idleTimeoutMilliseconds: 30000 }
+};
+
+let pool;
+async function getPool() {
+  if (!pool) pool = await sql.connect(dbConfig);
+  return pool;
+}
+
+// ── PING ──────────────────────────────────────
+app.get('/api/ping', async (req, res) => {
+  try {
+    const p = await getPool();
+    await p.request().query('SELECT 1');
+    res.json({ ok: true, database: dbConfig.database, version: 'AquaSense v4', ts: Date.now() });
+  } catch(e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── LEITURAS ──────────────────────────────────
+app.post('/api/leituras', async (req, res) => {
+  const { lpm, data, ts } = req.body;
+  try {
+    const p = await getPool();
+    await p.request()
+      .input('lpm', sql.Float, lpm)
+      .input('data', sql.NVarChar(10), data)
+      .input('ts', sql.BigInt, ts || Date.now())
+      .query('INSERT INTO leituras (lpm, data, ts) VALUES (@lpm, @data, @ts)');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/leituras/last', async (req, res) => {
+  try {
+    const p = await getPool();
+    const r = await p.request().query('SELECT TOP 1 lpm, data, ts FROM leituras ORDER BY ts DESC');
+    res.json(r.recordset[0] || { lpm: 0, data: '', ts: 0 });
+  } catch(e) { res.status(500).json({ lpm: 0, error: e.message }); }
+});
+
+// ── DAILY ─────────────────────────────────────
+app.post('/api/daily', async (req, res) => {
+  const { data, litros } = req.body;
+  try {
+    const p = await getPool();
+    await p.request()
+      .input('data', sql.NVarChar(10), data)
+      .input('litros', sql.Float, litros)
+      .query(\`MERGE daily AS t USING (VALUES (@data, @litros)) AS s(data, litros)
+        ON t.data = s.data
+        WHEN MATCHED THEN UPDATE SET t.litros = s.litros
+        WHEN NOT MATCHED THEN INSERT (data, litros) VALUES (s.data, s.litros);\`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/daily', async (req, res) => {
+  try {
+    const p = await getPool();
+    const r = await p.request().query('SELECT data, litros FROM daily ORDER BY data DESC');
+    const obj = {};
+    r.recordset.forEach(row => { obj[row.data] = row.litros; });
+    res.json(obj);
+  } catch(e) { res.status(500).json({}); }
+});
+
+// ── MONTHLY ───────────────────────────────────
+app.post('/api/monthly', async (req, res) => {
+  const { mes, litros } = req.body;
+  try {
+    const p = await getPool();
+    await p.request()
+      .input('mes', sql.NVarChar(7), mes)
+      .input('litros', sql.Float, litros)
+      .query(\`MERGE monthly AS t USING (VALUES (@mes, @litros)) AS s(mes, litros)
+        ON t.mes = s.mes
+        WHEN MATCHED THEN UPDATE SET t.litros = s.litros
+        WHEN NOT MATCHED THEN INSERT (mes, litros) VALUES (s.mes, s.litros);\`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/monthly', async (req, res) => {
+  try {
+    const p = await getPool();
+    const r = await p.request().query('SELECT mes, litros FROM monthly ORDER BY mes DESC');
+    const obj = {};
+    r.recordset.forEach(row => { obj[row.mes] = row.litros; });
+    res.json(obj);
+  } catch(e) { res.status(500).json({}); }
+});
+
+// ── GOAL ──────────────────────────────────────
+app.post('/api/goal', async (req, res) => {
+  const { consumoAnt, valorAnt, metaPct, custoM3 } = req.body;
+  try {
+    const p = await getPool();
+    await p.request()
+      .input('consumoAnt', sql.Float, consumoAnt)
+      .input('valorAnt', sql.Float, valorAnt)
+      .input('metaPct', sql.Float, metaPct)
+      .input('custoM3', sql.Float, custoM3)
+      .query(\`MERGE goal AS t USING (VALUES (1, @consumoAnt, @valorAnt, @metaPct, @custoM3)) AS s(id, consumoAnt, valorAnt, metaPct, custoM3)
+        ON t.id = s.id
+        WHEN MATCHED THEN UPDATE SET t.consumoAnt=s.consumoAnt, t.valorAnt=s.valorAnt, t.metaPct=s.metaPct, t.custoM3=s.custoM3
+        WHEN NOT MATCHED THEN INSERT (id, consumoAnt, valorAnt, metaPct, custoM3) VALUES (s.id, s.consumoAnt, s.valorAnt, s.metaPct, s.custoM3);\`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/goal', async (req, res) => {
+  try {
+    const p = await getPool();
+    const r = await p.request().query('SELECT consumoAnt, valorAnt, metaPct, custoM3 FROM goal WHERE id=1');
+    res.json(r.recordset[0] || {});
+  } catch(e) { res.status(500).json({}); }
+});
+
+// ── NOTIFICATIONS ─────────────────────────────
+app.post('/api/notifications', async (req, res) => {
+  const { id, type, title, msg, ts } = req.body;
+  try {
+    const p = await getPool();
+    await p.request()
+      .input('id', sql.NVarChar(64), id || Date.now().toString())
+      .input('type', sql.NVarChar(20), type)
+      .input('title', sql.NVarChar(255), title)
+      .input('msg', sql.NVarChar(sql.MAX), msg)
+      .input('ts', sql.BigInt, ts || Date.now())
+      .query('INSERT INTO notifications (id, type, title, msg, ts) VALUES (@id, @type, @title, @msg, @ts)');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const p = await getPool();
+    const r = await p.request().query('SELECT TOP 50 id, type, title, msg, ts FROM notifications ORDER BY ts DESC');
+    res.json(r.recordset);
+  } catch(e) { res.status(500).json([]); }
+});
+
+// ── SNAPSHOT ──────────────────────────────────
+app.get('/api/snapshot', async (req, res) => {
+  try {
+    const p = await getPool();
+    const [daily, monthly, goal, notifs, last] = await Promise.all([
+      p.request().query('SELECT data, litros FROM daily ORDER BY data DESC'),
+      p.request().query('SELECT mes, litros FROM monthly ORDER BY mes DESC'),
+      p.request().query('SELECT * FROM goal WHERE id=1'),
+      p.request().query('SELECT TOP 20 * FROM notifications ORDER BY ts DESC'),
+      p.request().query('SELECT TOP 1 lpm, data, ts FROM leituras ORDER BY ts DESC'),
+    ]);
+    const dailyObj = {}, monthlyObj = {};
+    daily.recordset.forEach(r => { dailyObj[r.data] = r.litros; });
+    monthly.recordset.forEach(r => { monthlyObj[r.mes] = r.litros; });
+    res.json({ daily: dailyObj, monthly: monthlyObj, goal: goal.recordset[0]||{}, notifications: notifs.recordset, lastReading: last.recordset[0]||null });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(\`AquaSense API rodando na porta \${PORT}\`));
+`;
+  _downloadFile('aquasense-api.js', content, 'text/javascript');
+  pushNotif('success', '⬇ aquasense-api.js baixado!', 'Servidor Node.js + mssql para SQL Server / Azure SQL.');
+};
+
+window.downloadSchemaFile = function() {
+  const content = `-- aquasense-schema.sql
+-- AquaSense v4 — Schema para SQL Server / Azure SQL Database
+-- Execute no SQL Server Management Studio ou no Editor de consultas do Azure Portal
+
+CREATE DATABASE aquasense;
+GO
+
+USE aquasense;
+GO
+
+-- Leituras instantâneas do sensor
+CREATE TABLE leituras (
+  id        INT IDENTITY(1,1) PRIMARY KEY,
+  lpm       FLOAT NOT NULL,
+  data      NVARCHAR(10) NOT NULL,
+  ts        BIGINT NOT NULL DEFAULT DATEDIFF(MILLISECOND, '1970-01-01', GETUTCDATE())
+);
+CREATE INDEX idx_leituras_ts ON leituras(ts DESC);
+CREATE INDEX idx_leituras_data ON leituras(data);
+
+-- Agregados diários
+CREATE TABLE daily (
+  data      NVARCHAR(10) PRIMARY KEY,
+  litros    FLOAT NOT NULL DEFAULT 0
+);
+
+-- Agregados mensais
+CREATE TABLE monthly (
+  mes       NVARCHAR(7) PRIMARY KEY,
+  litros    FLOAT NOT NULL DEFAULT 0
+);
+
+-- Configuração de meta (linha única)
+CREATE TABLE goal (
+  id        INT PRIMARY KEY DEFAULT 1,
+  consumoAnt FLOAT NOT NULL DEFAULT 8000,
+  valorAnt   FLOAT NOT NULL DEFAULT 120,
+  metaPct    FLOAT NOT NULL DEFAULT 15,
+  custoM3    FLOAT NOT NULL DEFAULT 5.50
+);
+INSERT INTO goal (id, consumoAnt, valorAnt, metaPct, custoM3) VALUES (1, 8000, 120, 15, 5.50);
+
+-- Histórico de notificações
+CREATE TABLE notifications (
+  id    NVARCHAR(64) PRIMARY KEY,
+  type  NVARCHAR(20),
+  title NVARCHAR(255),
+  msg   NVARCHAR(MAX),
+  ts    BIGINT NOT NULL DEFAULT DATEDIFF(MILLISECOND, '1970-01-01', GETUTCDATE())
+);
+CREATE INDEX idx_notif_ts ON notifications(ts DESC);
+
+-- Verificar tabelas criadas
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
+`;
+  _downloadFile('aquasense-schema.sql', content, 'text/plain');
+  pushNotif('success', '⬇ aquasense-schema.sql baixado!', 'Execute no SQL Server para criar as tabelas.');
+};
+
+window.downloadPackageJson = function() {
+  const content = JSON.stringify({
+    name: 'aquasense-api',
+    version: '4.0.0',
+    description: 'AquaSense v4 — API REST para monitoramento de água com SQL Server',
+    main: 'aquasense-api.js',
+    scripts: {
+      start: 'node aquasense-api.js',
+      dev: 'nodemon aquasense-api.js'
+    },
+    dependencies: {
+      express: '^4.18.2',
+      mssql: '^10.0.2',
+      cors: '^2.8.5',
+      dotenv: '^16.3.1'
+    },
+    devDependencies: {
+      nodemon: '^3.0.2'
+    },
+    engines: { node: '>=18.0.0' }
+  }, null, 2);
+  _downloadFile('package.json', content, 'application/json');
+  pushNotif('success', '⬇ package.json baixado!', 'Execute npm install na pasta do projeto.');
+};
+
+function _downloadFile(name, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+
+// ── Supabase URL pré-configurada ─────────────────────────────
+const SUPABASE_DEFAULT_URL = 'https://vhzznwnyevwtqhfkkpua.supabase.co';
+
+function boot(){
+  ALOG.log('🚀','💧 AquaSense v3 — Supabase Edition — Iniciando...');
+
+  if('Notification' in window&&Notification.permission==='default')
+    Notification.requestPermission();
+
+  refreshDashboard();
+  renderNotifHistory();
+  document.getElementById('notif-count').textContent=local.notifications.filter(n=>!n.read).length||0;
+
+  // Pré-preencher URL do Supabase nos campos do modal
+  const sbUrlInput = document.getElementById('sb-url-input');
+  if (sbUrlInput && !sbUrlInput.value) {
+    sbUrlInput.value = localStorage.getItem('aquasense_sb_url') || SUPABASE_DEFAULT_URL;
+  }
+
+  // Tentar conectar ao Supabase automaticamente se credenciais salvas
+  if(SUPABASE.loadSaved()){
+    const sbUrl = localStorage.getItem('aquasense_sb_url') || SUPABASE_DEFAULT_URL;
+    const sbKey = localStorage.getItem('aquasense_sb_key') || '';
+    ALOG.log('🗄️','Auto-conectando Supabase: '+sbUrl);
+    SUPABASE.connect(sbUrl, sbKey).then(async ok=>{
+      if(ok){
+        updateServerPill('online', sbUrl.replace('https://','').split('.')[0]+'.supabase.co', '⚡');
+        const data = await window._sbAdapter.syncAll();
+        if(data && data.daily) syncFromSupabase(data);
+        pushNotif('success','⚡ Supabase reconectado!','Dados sincronizados com o banco PostgreSQL.');
+        // Iniciar polling de leituras automaticamente
+        DB.onReading((r)=>{
+          if(!r||r.lpm===undefined)return;
+          const key=String(r.id||r.ts||Date.now());
+          if(window._lastAutoKey===key)return;
+          window._lastAutoKey=key;
+          processReading(parseFloat(r.lpm)||0,'supabase');
+        });
+        DB.startPolling(5000);
+      }
+    });
+  } else {
+    // Tentar conectar ao Supabase com URL padrão (sem chave — modo público)
+    const savedKey = localStorage.getItem('aquasense_sb_key');
+    if (savedKey) {
+      ALOG.log('🗄️','Tentando conectar Supabase com URL padrão...');
+      SUPABASE.connect(SUPABASE_DEFAULT_URL, savedKey).then(async ok=>{
+        if(ok){
+          updateServerPill('online', 'vhzznwnyevwtqhfkkpua.supabase.co', '⚡');
+          const data = await window._sbAdapter.syncAll();
+          if(data && data.daily) syncFromSupabase(data);
+          pushNotif('success','⚡ Supabase conectado!','URL padrão do projeto ativa.');
+          DB.onReading((r)=>{
+            if(!r||r.lpm===undefined)return;
+            const key=String(r.id||r.ts||Date.now());
+            if(window._lastAutoKey===key)return;
+            window._lastAutoKey=key;
+            processReading(parseFloat(r.lpm)||0,'supabase');
+          });
+          DB.startPolling(5000);
+        } else {
+          pushNotif('info','👋 Bem-vindo ao AquaSense!','Configure sua API Key do Supabase em ☁️ Servidor na Nuvem → Conectar → Supabase.');
+          pushNotif('warning','💡 Configure suas metas','Acesse a aba "Metas" para definir a conta anterior.');
+        }
+      });
+    } else {
+      // Tentar conectar ao MySQL/API como fallback
+      const savedApi=localStorage.getItem('aquasense_api_base');
+      if(savedApi){
+        ALOG.log('🗄️','Auto-conectando API: '+savedApi);
+        DB._connected_legacy = false;
+        const legacyConnect = async () => {
+          try {
+            const r = await fetch(savedApi + '/ping', { signal: AbortSignal.timeout(5000) });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            DB._connected_legacy = true;
+            syncServerPill();
+            pushNotif('success','🗄️ API reconectada!','Dados sincronizados com o banco.');
+          } catch(e) { DB._connected_legacy = false; }
+        };
+        legacyConnect();
+      } else {
+        pushNotif('info','👋 Bem-vindo ao AquaSense!','Configure a API Key do Supabase em ☁️ Servidor na Nuvem → Conectar → Supabase.');
+        pushNotif('warning','💡 Configure suas metas','Acesse a aba "Metas" para definir a conta anterior.');
+      }
+    }
+  }
+
+  setInterval(()=>{
+    if(DB.isConnected()&&S.ard.connected){
+      ALOG.log('🤖',`❤️ Leituras: ${local.readCount} | Sessão: ${local.totalSession.toFixed(1)}L`);
+    }
+  },30000);
+
+  ALOG.log('🚀','✅ Boot completo!');
+}
+
+boot();
+</script>
+
+</body>
+</html>
