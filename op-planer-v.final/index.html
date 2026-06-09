@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>OP Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="abg"></div><div class="agr"></div>
+  <div class="acard">
+    <div class="alogo">
+      <div class="lmk"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div>
+      <h1><em>OP</em> Planner</h1>
+    </div>
+    <div class="tabs">
+      <div class="tsl" id="tsl"></div>
+      <button class="atab on" id="tbl" onclick="stab('l')">Entrar</button>
+      <button class="atab" id="tbr" onclick="stab('r')">Criar conta</button>
+    </div>
+    <div id="lf">
+      <div class="fg"><label>E-mail</label><input type="email" class="fc" id="le" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')dologin()"/></div>
+      <div class="fg"><label>Senha</label><input type="password" class="fc" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')dologin()"/></div>
+      <p class="aerr" id="lerr"></p>
+      <button class="btn btnp btnfw" onclick="dologin()">Entrar</button>
+    </div>
+    <div id="rf" style="display:none">
+      <div class="fg"><label>Nome completo</label><input type="text" class="fc" id="rn" placeholder="Seu nome" onkeydown="if(event.key==='Enter')doreg()"/></div>
+      <div class="fg"><label>E-mail</label><input type="email" class="fc" id="re" placeholder="seu@email.com" oninput="vmail()" onkeydown="if(event.key==='Enter')doreg()"/></div>
+      <p class="aerr" id="ree"></p>
+      <div class="fg"><label>Senha</label><input type="password" class="fc" id="rp" placeholder="Mínimo 8 caracteres" oninput="cpw()" onkeydown="if(event.key==='Enter')doreg()"/></div>
+      <div class="pwr-box">
+        <div class="pwr" id="r1">— Mínimo 8 caracteres</div>
+        <div class="pwr" id="r2">— Letra maiúscula</div>
+        <div class="pwr" id="r3">— Número</div>
+        <div class="pwr" id="r4">— Caractere especial (!@#$...)</div>
+      </div>
+      <p class="aerr" id="rerr"></p>
+      <button class="btn btnp btnfw" onclick="doreg()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="hdr">
+    <div class="hlogo" onclick="nav('dashboard')">
+      <div class="hlmk"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div>
+      <span class="hltx"><em>OP</em> Planner</span>
+    </div>
+    <div class="hsp"></div>
+    <div class="hacts">
+      <div class="dd" id="pdd">
+        <div class="av" id="uav" onclick="tdd('pdd')">?</div>
+        <div class="ddm">
+          <div class="ddu"><div class="ddun" id="ddn"></div><div class="ddue" id="dde"></div></div>
+          <div class="ddsl">Tema</div>
+          <div class="ddr">
+            <button class="ddb" id="ddk" onclick="stheme('dark')">Escuro</button>
+            <button class="ddb" id="ddl" onclick="stheme('light')">Claro</button>
+          </div>
+          <div class="ddsl">Acessibilidade — Visão</div>
+          <div class="cbg">
+            <button class="cbb" id="cbnone" onclick="scb('none')">Normal</button>
+            <button class="cbb" id="cbdeut" onclick="scb('deut')">Deuteranopia</button>
+            <button class="cbb" id="cbprot" onclick="scb('prot')">Protanopia</button>
+            <button class="cbb" id="cbtrit" onclick="scb('trit')">Tritanopia</button>
+            <button class="cbb fw" id="cbachr" onclick="scb('achr')">Acromatopsia</button>
+          </div>
+          <div class="ddiv"></div>
+          <button class="ddi dng" onclick="dologout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair da conta</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="mlayout">
+    <aside class="sidebar">
+      <div class="ss">
+        <p class="slb">Principal</p>
+        <button class="si" dp="dashboard" onclick="nav('dashboard')"><span class="sii"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Dashboard</button>
+        <button class="si" dp="schedules" onclick="nav('schedules')"><span class="sii"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Cronogramas</button>
+        <button class="si" dp="calendar" onclick="nav('calendar')"><span class="sii"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>Calendário</button>
+        <button class="si" dp="analytics" onclick="nav('analytics')"><span class="sii"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Desempenho</button>
+      </div>
+      <div class="ss">
+        <p class="slb">Acesso Rápido</p>
+        <button class="si" onclick="stodm()"><span class="sii"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Tarefas de hoje<span class="badge" id="tbdg">0</span></button>
+      </div>
+      <div class="sbot">
+        <button class="si" dp="about" onclick="nav('about')"><span class="sii"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Sobre</button>
+      </div>
+    </aside>
+
+    <main class="content" id="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="pg" id="pg-dashboard">
+        <div class="wb"><div><h2 id="wn">Olá!</h2><p>Acompanhe sua produtividade.</p></div></div>
+        <div class="srow" id="dstat"></div>
+        <div class="tc">
+          <div><div class="stit">Tarefas de Hoje</div><div id="dtl" class="tlist"></div></div>
+          <div><div class="stit">Cronogramas Recentes</div><div id="drec"></div></div>
+        </div>
+      </div>
+
+      <!-- SCHEDULES -->
+      <div class="pg" id="pg-schedules">
+        <div class="phr"><div><h2>Cronogramas</h2><p>Gerencie seus planejamentos</p></div><button class="btn btnp bsm" onclick="openSchModal()">+ Novo</button></div>
+        <div class="sbr"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar cronogramas..." id="schq" oninput="rschs()"/></div>
+        <div id="schlist" class="cgrid"></div>
+      </div>
+
+      <!-- SCHEDULE DETAIL -->
+      <div class="pg" id="pg-detail">
+        <button class="btn btng bsm mb3" onclick="nav('schedules')">← Voltar</button>
+        <div class="chd"><div><h2 id="dtit"></h2><p id="ddsc" class="tmut tsm mt2"></p><div style="margin-top:10px" id="dtags"></div></div><div class="chacts"><button class="btn btns bsm" onclick="oedit()">Editar</button><button class="btn btnd bsm" onclick="dcs()">Excluir</button></div></div>
+        <div class="stit">Tarefas <button class="btn btnp bsm" onclick="oats()">+ Adicionar</button></div>
+        <div id="dettl" class="tlist"></div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="pg" id="pg-calendar">
+        <div class="ph"><h2>Calendário</h2><p>Visualize seus compromissos por data</p></div>
+        <div class="calw">
+          <div class="calh"><button class="btn btng bsm" onclick="chmo(-1)">← Anterior</button><h3 id="cml"></h3><button class="btn btng bsm" onclick="chmo(1)">Próximo →</button></div>
+          <div class="calg" id="cll"></div><div class="calg" id="clg"></div>
+        </div>
+        <div id="cdet" style="display:none;margin-top:18px;"><div class="stit" id="cdl"></div><div id="cdtl" class="tlist"></div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="pg" id="pg-analytics">
+        <div class="ph"><h2>Desempenho</h2><p>Acompanhe sua evolução ao longo do tempo</p></div>
+        <div class="srow" id="astat"></div>
+        <div class="tc">
+          <div class="card chart-card" style="cursor:default"><h3 style="font-family:var(--fh);margin-bottom:12px">Concluídas — <span id="wcht-titulo"></span></h3><div class="cbars" id="wcht" style="gap:3px"></div></div>
+          <div class="card" style="cursor:default"><h3 style="font-family:var(--fh);margin-bottom:12px">Por prioridade</h3><div id="pcht" style="padding-top:4px"></div></div>
+        </div>
+        <div class="mt3"><div class="card" style="cursor:default"><h3 style="font-family:var(--fh);margin-bottom:12px">Progresso por cronograma</h3><div id="sprog"></div></div></div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="pg" id="pg-about">
+        <div class="ph"><h2>Sobre</h2><p>Informações sobre o projeto e a equipe</p></div>
+        <div class="abt">
+          <div class="abig"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div>
+          <span class="aver">Versão 0.14.1 · beta</span>
+          <h2 style="font-family:var(--fh);font-size:22px;font-weight:800;margin-bottom:10px"><em style="color:var(--ac);font-style:normal">OP</em> Planner</h2>
+          <p class="adsc">Sistema web de gerenciamento de cronogramas e tarefas, focado em usabilidade, personalização e acompanhamento do desempenho pessoal.</p>
+          <div class="adiv"></div>
+          <div class="ateam"><h3>Equipe de Desenvolvimento</h3><p class="aph" style="font-style:normal;line-height:1.8;text-align:center;font-weight:600;color:var(--tx)">O projeto <strong>OP Planner</strong> foi desenvolvido no contexto de uma avaliação acadêmica por três alunos: <strong>Richard Armestrong</strong>, <strong>Vinicios Alves Nicolino</strong> e <strong>Vinícius de Castro Faria</strong>. Sua proposta é contribuir para a melhoria da organização e da produtividade dos usuários, por meio de um sistema voltado à criação, ao gerenciamento e ao acompanhamento de cronogramas e atividades. Além disso, o projeto busca promover maior inclusão digital ao oferecer recursos de acessibilidade visual, especialmente voltados a pessoas com daltonismo.</p></div>
+          <div class="adiv"></div>
+          <p style="font-size:13px;color:var(--tx2);margin-bottom:12px">Tecnologias utilizadas</p>
+          <div class="atechs"><span class="atag">HTML5</span><span class="atag">CSS3</span><span class="atag">JavaScript</span><span class="atag">LocalStorage</span></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="mo" id="schm"><div class="md">
+  <div class="mhd"><h3 id="smtit">Novo Cronograma</h3><button class="btn btng bic" onclick="cmod('schm')">✕</button></div>
+  <input type="hidden" id="eid"/>
+  <div class="fg"><label>Nome *</label><input type="text" class="fc" id="sn" placeholder="Ex: Rotina de Estudos"/></div>
+  <div class="fg"><label>Descrição</label><textarea class="fc" id="sd" rows="3" placeholder="Objetivo deste cronograma..."></textarea></div>
+  <div class="tc">
+    <div class="fg"><label>Categoria</label><select class="fc" id="sc"><option value="estudos">Estudos</option><option value="trabalho">Trabalho</option><option value="saude">Saúde e Fitness</option><option value="pessoal">Pessoal</option><option value="financeiro">Financeiro</option><option value="outro">Outro</option></select></div>
+    <div class="fg"><label>Cor</label><select class="fc" id="scol"><option value="blue">Azul</option><option value="purple">Roxo</option><option value="green">Verde</option><option value="orange">Laranja</option><option value="red">Vermelho</option></select></div>
+  </div>
+  <div class="mft"><button class="btn btns" onclick="cmod('schm')">Cancelar</button><button class="btn btnp" onclick="ssave()">Salvar</button></div>
+</div></div>
+
+<div class="mo" id="taskm"><div class="md">
+  <div class="mhd"><h3 id="tmtit">Nova Tarefa</h3><button class="btn btng bic" onclick="cmod('taskm')">✕</button></div>
+  <input type="hidden" id="etid"/>
+  <div class="fg"><label>Título *</label><input type="text" class="fc" id="ttit" placeholder="Ex: Estudar matemática"/></div>
+  <div class="fg"><label>Descrição</label><textarea class="fc" id="tdsc" rows="2" placeholder="Detalhes..."></textarea></div>
+  <div class="tc">
+    <div class="fg"><label>Cronograma</label><select class="fc" id="tsch"></select><div class="fc" id="tsch-lbl" style="display:none;cursor:default;color:var(--tx)"></div></div>
+    <div class="fg"><label>Prioridade</label><select class="fc" id="tpri"><option value="high">Alta</option><option value="medium" selected>Média</option><option value="low">Baixa</option></select></div>
+  </div>
+  <div class="tc">
+    <div class="fg"><label>Data</label><input type="date" class="fc" id="tdt"/></div>
+    <div class="fg"><label>Horário</label><input type="time" class="fc" id="ttm"/></div>
+  </div>
+  <div class="tc">
+    <div class="fg"><label>Prazo limite (data)</label><input type="date" class="fc" id="tddl" title="Data limite para conclusão"/></div>
+    <div class="fg"><label>Hora limite</label><input type="time" class="fc" id="tddltm" title="Hora limite para conclusão"/></div>
+  </div>
+  <div class="mft"><button class="btn btns" onclick="cmod('taskm')">Cancelar</button><button class="btn btnp" onclick="tsave()">Salvar</button></div>
+</div></div>
+
+<div class="mo" id="confm"><div class="md" style="max-width:360px">
+  <div class="mhd"><h3>Confirmar</h3><button class="btn btng bic" onclick="cmod('confm')">✕</button></div>
+  <p id="confmsg" class="tmut tsm"></p>
+  <div class="mft"><button class="btn btns" onclick="cmod('confm')">Cancelar</button><button class="btn btnd" id="confok">Confirmar</button></div>
+</div></div>
+
+<div class="mo" id="todm"><div class="md">
+  <div class="mhd"><h3>Tarefas de Hoje</h3><button class="btn btng bic" onclick="cmod('todm')">✕</button></div>
+  <div id="todml" class="tlist"></div>
+  <div class="mft"><button class="btn btns" onclick="cmod('todm')">Fechar</button></div>
+</div></div>
+
+<div class="mo" id="expm"><div class="md" style="max-width:420px">
+  <div class="mhd"><h3>⚠️ Tarefas não concluídas</h3><button class="btn btng bic" onclick="cmod('expm')">✕</button></div>
+  <p id="expmsg" class="tmut tsm" style="margin-bottom:14px"></p>
+  <div id="expml" class="tlist"></div>
+  <div class="mft"><button class="btn btns" onclick="cmod('expm')">Fechar</button></div>
+</div></div>
+
+<!-- TUTORIAL -->
+<div class="mo" id="tutm">
+  <div class="md tut-md">
+    <div class="tut-hd">
+      <div class="tut-logo"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div>
+      <div class="tut-steps" id="tut-dots"></div>
+    </div>
+    <div class="tut-body" id="tut-body"></div>
+    <div class="tut-ft">
+      <button class="btn btns bsm" id="tut-skip" onclick="tutSkip()">Pular tutorial</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btng bsm" id="tut-prev" onclick="tutNav(-1)">← Anterior</button>
+        <button class="btn btnp bsm" id="tut-next" onclick="tutNav(1)">Próximo →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tst"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
